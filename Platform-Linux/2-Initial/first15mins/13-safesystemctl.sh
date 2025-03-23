@@ -44,8 +44,14 @@ sysctl -p /etc/sysctl.d/ccdc.conf
 # Flush the routing table
 sysctl -w net.ipv4.route.flush=1
 
+# Disable ptrace on non-child processes
+echo 1 > /proc/sys/kernel/yama/ptrace_scope
+
+# Make sure ASLR is enabled
+echo 1 > /proc/sys/kernel/randomize_va_space
+
 # Disable and Stop rsync it is considered insecure
-systemctl --now disable rsync 
+# systemctl --now disable rsync 
 # Disable and Stop nis (If it is there) --> Not needed with purge?
 systemctl --now disable nis 
 

@@ -104,8 +104,8 @@ sysctl -w net.ipv4.route.flush=1
 sysctl -w net.ipv6.route.flush=1
 
 # Disable and Stop rsync it is considered insecure
-echo "[!!] disable rsync"
-systemctl --now disable rsync 
+# echo "[!!] disable rsync"
+# systemctl --now disable rsync 
 # Disable and Stop nis (If it is there) --> Not needed with purge?
 echo "[!!] disable nis"
 systemctl --now disable nis 

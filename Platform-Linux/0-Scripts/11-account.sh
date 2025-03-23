@@ -1,4 +1,16 @@
 #! /bin/bash
+#! /bin/bash
+#********************************
+# Written by a sad Matthew Harper...
+#********************************
+# Check if the scrip is ran as root.
+# $EUID is a env variable that contains the users UID
+# -ne 0 is not equal zero
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
 users=(
     "mhbteam"
     "cubteam"
@@ -25,10 +37,12 @@ ssh_keys=(
     ""
 )
 
-echo "[!] Creating Alternative Sudo Group [!]"
-groupadd Minecraft-User
+group="Minecraft-User"
 
 tpass="1qazxsW@1" #EDIT DEFAULT PASSWORD
+
+echo "[!] Creating Alternative Sudo Group [!]"
+groupadd $group
 
 . /etc/os-release
 
@@ -40,7 +54,7 @@ for user in "${users[@]}"; do
     elif [[ "$ID" == "rhel" || "$ID" == "centos" || "$ID" == "fedora" || "$ID" == "rocky" || "$ID" == "alma" ]]; then
         usermod -aG wheel $user
     fi
-    usermod -aG Minecraft-User $user
+    usermod -aG $group $user
     echo "$user:$tpass" | chpasswd
     passwd -l $user
     mkdir /home/$user/.ssh

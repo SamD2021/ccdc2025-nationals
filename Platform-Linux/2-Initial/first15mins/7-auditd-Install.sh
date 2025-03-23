@@ -145,6 +145,9 @@ echo -e "-w /bin/ash -p x -k susp_shell\n-w /bin/csh -p x -k susp_shell\n-w /bin
 #echo "[+] Create auditd rule to make rules imutable unless there is a system restart 
 #echo "-e 2" >> /etc/audit/rules.d/99-finalize.rules 
 
+# Audit Changes Made to /etc/
+echo -e "-a always,exit -F exe!=/usr/sbin/ausearch -F dir=/etc/ -F perm=wa -F auid>=1000 -F auid!=4294967295 -k etc_modifications\n" >> /etc/audit/rules.d/ccdc.rules
+
 echo "[!!] Restarting Auditd"
 
 if [ -f "/etc/redhat-release" ]; then 

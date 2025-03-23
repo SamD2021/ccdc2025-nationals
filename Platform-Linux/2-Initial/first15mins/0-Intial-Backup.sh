@@ -41,7 +41,7 @@ do
 done
 
 ## SSH
-echo "[+] Backing up old SSH config to /backups/configs/sshd_config.backup"
+echo "[+] Backing up old SSH config to /backups/configs/sshd_configs"
 # Create config directory
 mkdir /backups/configs
 # Change ownership of the directory to root (explicit, should inherit from parent?)
@@ -49,10 +49,10 @@ chown root:root /backups/configs
 # Make it read-write for root but read for others
 chmod 644 /backups/configs
 # Copy SSH Config
-cp /etc/ssh/sshd_config /backups/configs/sshd_config.backup
+cp -r /etc/ssh/ /backups/configs/sshd_configs
 
 ## PAM
-echo "[+] Backing up old PAM config to /backups/configs/sshd_config.backup"
+echo "[+] Backing up old PAM config to /backups/configs/pam"
 # Create config directory
 mkdir /backups/configs/pam
 # Change ownership of the directory to root (explicit, should inherit from parent?)
@@ -85,6 +85,17 @@ elif [ -d "/etc/firewalld/" ]; then
   cp /etc/firewalld /backups/firewall/firewalld-user
 else
   cp /etc/nftables.conf /backups/firewall/nftables.conf
+fi
+
+# UFW Configs
+if [ -d "/etc/ufw" ]; then
+  mkdir /backups/configs/ufw
+  # Change ownership of the directory to root (explicit, should inherit from parent?)
+  chown root:root /backups/configs/ufw
+  # Make it read-write for root but only read for others
+  chmod 644 /backups/configs/ufw
+  # Copy entire directory (I am lazy, most all of it is configurable)
+  cp -r /etc/ufw/user.rules /backups/configs/ufw/user.rules
 fi
 
 ## Crontab
@@ -126,27 +137,16 @@ chmod 644 /backups/network
 cp -r /etc/netplan /backups/network
 
 # glusterfs configs
-if [ -d "/etc/glusterfs" ]; then
+# if [ -d "/etc/glusterfs" ]; then
 
-  mkdir /backups/configs/gluster
-  # Change ownership of the directory to root (explicit, should inherit from parent?)
-  chown root:root /backups/configs/gluster
-  # Make it read-write for root but only read for others
-  chmod 644 /backups/configs/gluster
-  # Copy entire directory (I am lazy, most all of it is configurable)
-  cp -r /etc/glusterfs/ /backups/configs/gluster/
-fi
-
-# UFW Configs
-if [ -d "/etc/ufw" ]; then
-  mkdir /backups/configs/ufw
-  # Change ownership of the directory to root (explicit, should inherit from parent?)
-  chown root:root /backups/configs/ufw
-  # Make it read-write for root but only read for others
-  chmod 644 /backups/configs/ufw
-  # Copy entire directory (I am lazy, most all of it is configurable)
-  cp -r /etc/ufw/user.rules /backups/configs/ufw/user.rules
-fi
+#   mkdir /backups/configs/gluster
+#   # Change ownership of the directory to root (explicit, should inherit from parent?)
+#   chown root:root /backups/configs/gluster
+#   # Make it read-write for root but only read for others
+#   chmod 644 /backups/configs/gluster
+#   # Copy entire directory (I am lazy, most all of it is configurable)
+#   cp -r /etc/glusterfs/ /backups/configs/gluster/
+# fi
 
 # Backup Auth Files -- In place
 echo "[+] Backing up shadow file to shadow.bak (in-place)"
@@ -181,3 +181,18 @@ chown root:root /etc/gshadow.bak
 # Make it read-write for root but read for others
 chmod 400 /etc/gshadow.bak
 
+# Etc
+echo "[+] Backing up etc directory to /backups/etc/"
+mkdir /backups/etc
+# Change ownership of the directory to root (explicit, should inherit from parent?)
+chown root:root /backups/etc
+# Make it read-write for root but read for others
+chmod 644 /backups/etc
+# Copy logs
+cp -r /etc /backups/etc
+
+echo "[!] Changing Attr on /backups [!]"
+
+chattr +i /backups
+
+echo "[?] Use \`chattr -i /backups\` to enable removal and writes [?]"
