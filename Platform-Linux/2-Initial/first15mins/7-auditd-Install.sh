@@ -2,6 +2,7 @@
 
 #********************************
 # Written by a sad Matthew Harper...
+# Based on https://github.com/Neo23x0/auditd
 #********************************
 
 # Check if the scrip is ran as root.
@@ -147,6 +148,41 @@ echo -e "-w /bin/ash -p x -k susp_shell\n-w /bin/csh -p x -k susp_shell\n-w /bin
 
 # Audit Changes Made to /etc/
 echo -e "-a always,exit -F exe!=/usr/sbin/ausearch -F dir=/etc/ -F perm=wa -F auid>=1000 -F auid!=4294967295 -k etc_modifications\n" >> /etc/audit/rules.d/ccdc.rules
+
+# PKG Mngmet
+if [ -f /etc/redhat-release ]; then
+    # RPM (Redhat/CentOS)
+    echo -e "-w /usr/bin/rpm -p x -k software_mgmt\n-w /usr/bin/yum -p x -k software_mgmt\n" >> /etc/audit/rules.d/ccdc.rules
+
+    # DNF (Fedora/RedHat 8/CentOS 8)
+    echo -e "-w /usr/bin/dnf -p x -k software_mgmt\n" >> /etc/audit/rules.d/ccdc.rules
+elif [ -f  /etc/SuSE-release ]; then
+    # YAST/Zypper/RPM (SuSE)
+    echo -e "-w /sbin/yast -p x -k software_mgmt\n-w /sbin/yast2 -p x -k software_mgmt\n-w /bin/rpm -p x -k software_mgmt\n-w /usr/bin/zypper -k software_mgmt" >> /etc/audit/rules.d/ccdc.rules
+elif [ -f /etc/debian_version ]; then
+    # DPKG / APT-GET (Debian/Ubuntu)
+    echo -e "-w /usr/bin/dpkg -p x -k software_mgmt\n-w /usr/bin/apt -p x -k software_mgmt\n-w /usr/bin/apt-add-repository -p x -k software_mgmt\n-w /usr/bin/apt-get -p x -k software_mgmt\n-w /usr/bin/aptitude -p x -k software_mgmt\n-w /usr/bin/wajig -p x -k software_mgmt\n-w /usr/bin/snap -p x -k software_mgmt\n" >> /etc/audit/rules.d/ccdc.rules
+fi
+
+# Kubectl
+echo "[+] Create auditd rule to log kubectl executions"
+echo -e "-a always,exit -F path=/usr/bin/kubectl -F perm=x -k kubectl_exec\n" >> /etc/audit/rules.d/ccdc.rules
+
+# Docker
+echo "[+] Create auditd rule to log Docker binary executions"
+echo "-a always,exit -F path=/usr/bin/docker -F perm=x -k docker_exec" >> /etc/audit/rules.d/ccdc.rules
+
+# Podman
+echo "[+] Create auditd rule to log Docker binary executions"
+echo "-a always,exit -F path=/usr/bin/podman -F perm=x -k podman_exec" >> /etc/audit/rules.d/ccdc.rules
+
+# Bash
+echo "[+] Create auditd rule to log bash executions"
+echo "-a always,exit -F path=/bin/bash -F perm=x -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+
+# Salt
+echo "[+] Create auditd rule to log salt executions"
+echo "-a always,exit -F path=/bin/salt-call -F perm=x -k salt_exec\n-a always,exit -F path=/bin/salt-minion -F perm=x -k salt_exec" >> /etc/audit/rules.d/ccdc.rules
 
 echo "[!!] Restarting Auditd"
 
