@@ -7,27 +7,26 @@
 ##
 
 ---
-  - name: Target-Host-Facts
-    ansible.builtin.setup:
+- name: Target Host Facts
+  ansible.builtin.setup:
 
-  - name: Install-Packages-Debian
-    ansible.builtin.apt:
-      name: "{{ item }}"
-      state: present
-    when: ansible_facts['os_family'] == 'Debian'
-    loop: "{{ deb_install_pkgs }}"
+- name: Install Packages on Debian
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+  loop: "{{ deb_install_pkgs }}"
 
-  - name: Install-Packages-Rhel
-    ansible.builtin.yum:
-      name: "{{ item }}"
-      state: present
-    when: ansible_facts['os_family'] == 'RedHat'
-    loop: "{{ rhel_install_pkgs }}"
+- name: Install Packages on RHEL
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+  loop: "{{ rhel_install_pkgs }}"
 
-  - name: Install-Packages-Alpine
-    ansible.builtin.apk:
-      name: "{{ item }}"
-      state: present
-    when: ansible_facts['os_family'] == 'Alpine'
-    loop: "{{ alpine_install_pkgs }}"
-
+- name: Install Packages on Alpine
+  ansible.builtin.apk:
+    name: "{{ item }}"
+    state: present
+  when: ansible_facts['os_family'] == 'Alpine'
+  loop: "{{ alpine_install_pkgs }}"

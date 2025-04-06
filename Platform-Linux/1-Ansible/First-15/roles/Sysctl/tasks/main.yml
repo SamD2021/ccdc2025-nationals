@@ -6,14 +6,15 @@
 ##
 
 ---
-  - name: Configure-System
-    ansible.builtin.copy:
-      src: "{{ conf_name }}"
-      dest: "{{ conf_file_trgt }}"
-      remote_src: false
-      owner: root
-      group: root
-      mode: '644'
-  - name: Load-Config
-    ansible.builtin.command: sysctl -p {{ conf_file_trgt }}
-    ignore_errors: yes
+- name: Configure System
+  ansible.builtin.copy:
+    src: "{{ sysctl_conf_name }}"
+    dest: "{{ sysctl_conf_file_trgt }}"
+    remote_src: false
+    owner: root
+    group: root
+    mode: '644'
+
+- name: Load Config
+  ansible.builtin.command: sysctl -p {{ sysctl_conf_file_trgt }}
+  ignore_errors: true

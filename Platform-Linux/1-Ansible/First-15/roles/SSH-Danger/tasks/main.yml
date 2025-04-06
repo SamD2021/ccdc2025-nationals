@@ -14,43 +14,42 @@
 ##
 
 ---
-  - name: Backup-SSHD-File
-    ansible.builtin.copy:
-      remote_src: true 
-      src: /etc/ssh/sshd_config
-      dest: /etc/ssh/sshd_config_danger.bak
-      owner: root
-      group: root
-      mode: u=rw,g=r,o=r
+- name: Backup SSHD File
+  ansible.builtin.copy:
+    remote_src: true 
+    src: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config_danger.bak
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
 
-  - name: Create-SSHD-Backup-Directory
-    ansible.builtin.file:
-      path: /etc/ssh/sshd_config_bak_danger.d
-      state: directory
-      owner: root
-      group: root
-      mode: u=rwx,g=rx,o=rx
+- name: Create SSHD Backup Directory
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config_bak_danger.d
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
 
-  - name: Backup-SSD-Directory
-    ansible.builtin.copy:
-      remote_src: true
-      src: /etc/ssh/sshd_config.d
-      dest: /etc/ssh/sshd_config_bak_danger.d
-      owner: root
-      group: root
-      mode: u=rwx,g=rx,o=rx
+- name: Backup SSD Directory
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/ssh/sshd_config.d
+    dest: /etc/ssh/sshd_config_bak_danger.d
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
 
-  - name: disable-tcp-forwarding
-    ansible.builtin.lineinfile:
-      path: /etc/ssh/sshd_config
-      regexp: '.*AllowTcpForwarding.*'
-      line: 'AllowTcpForwarding no'
+- name: Disable TCP Forwarding
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '.*AllowTcpForwarding.*'
+    line: 'AllowTcpForwarding no'
 
-  - name: disable-x11-forwarding
-    ansible.builtin.lineinfile:
-      path: /etc/ssh/sshd_config
-      regexp: '.*X11Forwarding.*'
-      line: 'X11Forwarding no'
-    notify:
-      - Restart-SSHD
-
+- name: Disable X11 Forwarding
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '.*X11Forwarding.*'
+    line: 'X11Forwarding no'
+  notify:
+    - Restart SSHD

@@ -36,4 +36,4 @@
       name: "{{ item }}"
       password_lock: true
     loop: "{{ home_dirs.stdout_lines }}"
-    when: item not in whitelist
+    when: item not in lock_users_whitelist

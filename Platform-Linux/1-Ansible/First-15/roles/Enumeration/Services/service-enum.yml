@@ -5,14 +5,14 @@
 ##
 
 ---
-- name: Service-Enumeration
+- name: Service Enumeration
   hosts: infra # Need to Coordinate This
   become: true # Need to be sudo
   vars:
     remote_tmp_target: /tmp/services.out
     local_tmp_target: ../Enumerated_Systems/
   tasks:
-    - name: Service-Enum
+    - name: Service Enum
       ansible.builtin.find:
         paths: "{{ item }}"
         recurse: yes
@@ -25,37 +25,36 @@
         - /etc/systemd/system
       ignore_errors: true
 
-    - name: Concatenate-Output-Path
+    - name: Concatenate Output Path
       ansible.builtin.set_fact:
-        combined_output_service_paths: "{{ (service_search.results | map(attribute='files') | sum(start=[]) | map(attribute='path')) }}"
+        combined_output_service_paths: "{{ (service_search.results | map(attribute='files') | sum(start=[]) | map(attribute='path')) | list }}"
 
-    - name: Generate-Service-Report
+    - name: Generate Service Report
       ansible.builtin.shell: |
         echo "[!] SERVICE {{item}} [!]"
         cat {{ item }} | grep 'ExecStart' | cut -d '=' -f2 | grep -Ev "\!\!" 
         echo "\n\n"
       register: service_report
-      with_items:
-        - "{{ combined_output_service_paths }}"
+      with_items: "{{ combined_output_service_paths }}"
 
-    - name: Concatenate-Cron-Report
+    - name: Concatenate Cron Report
       ansible.builtin.set_fact:
-        combined_output_service_results: "{{ (service_report.results |  map(attribute='stdout') | join('\n')) }}"
+        combined_output_service_results: "{{ (service_report.results | map(attribute='stdout') | join('\n')) }}"
 
-    - name: Save-Remote-Cron
+    - name: Save Remote Cron
       ansible.builtin.copy:
         content: "{{ combined_output_service_results }}"
         dest: "{{ remote_tmp_target }}"
 
-    - name: Fetch-Remote
+    - name: Fetch Remote
       ansible.builtin.fetch:
         src: "{{ remote_tmp_target }}"
         dest: "{{ local_tmp_target }}"
         flat: false
 
-    - name: Clean-Remote
+    - name: Clean Remote
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       with_items:
-        - "{{ remote_tmp_target}}"
+        - "{{ remote_tmp_target }}"

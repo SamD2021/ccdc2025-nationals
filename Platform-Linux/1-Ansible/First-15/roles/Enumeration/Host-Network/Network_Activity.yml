@@ -34,7 +34,7 @@
         echo "\n[!] Processes Currently Established/Establishing Connections (lsof - TCP) [!]"
         lsof -i -s TCP:ESTABLISHED
       register: network_established
-      ignore_errors : true
+      ignore_errors: true
 
     - name: Save-Remote-Active
       ansible.builtin.copy:
@@ -47,13 +47,12 @@
         lsof | grep -i -E 'raw|pcap'
         lsof | grep /proc/sys/net/ipv4
       register: network_raw
-      ignore_errors : true
+      ignore_errors: true
     
     - name: Save-Remote-Active
       ansible.builtin.copy:
         content: "{{ network_raw.stdout }}"
         dest: "{{ remote_tmp_target_network_raw }}"
-
 
     - name: Fetch-Remote
       ansible.builtin.fetch:

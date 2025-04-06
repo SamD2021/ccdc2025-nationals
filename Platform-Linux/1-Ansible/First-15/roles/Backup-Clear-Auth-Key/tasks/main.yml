@@ -1,34 +1,33 @@
 ##
 # Usage: Backup and clear all non-whitelisted user authorized keys.
-# 
 ##
 
 ---
-  - name: Find all directories in /home
-    ansible.builtin.command: "ls /home/"
-    register: home_dirs
+- name: Find all directories in /home
+  ansible.builtin.command: "ls /home/"
+  register: home_dirs
 
-  - name: backup-auth-keys
-    ansible.builtin.copy:
-      src: /home/{{ item }}/.ssh/authorized_keys
-      dest: /home/{{ item }}/.ssh/authorized_keys.bak
-      remote_src: true
-      owner: "{{ managing_user }}"
-      group: "{{ managing_user }}"
-    with_items: "{{ home_dirs.stdout_lines }}"
+- name: Backup user authorized keys
+  ansible.builtin.copy:
+    src: /home/{{ item }}/.ssh/authorized_keys
+    dest: /home/{{ item }}/.ssh/authorized_keys.bak
+    remote_src: true
+    owner: "{{ auth_key_managing_user }}"
+    group: "{{ auth_key_managing_user }}"
+  with_items: "{{ home_dirs.stdout_lines }}"
 
-    #ideally we disable ssh root login
-  - name: backup-auth-keys-root
-    ansible.builtin.copy:
-      src: /root/.ssh/authorized_keys
-      dest: /root/.ssh/authorized_keys.bak
-      remote_src: true
-      owner: root
-      group: root
+#should disable ssh root login probs
+- name: Backup root authorized keys
+  ansible.builtin.copy:
+    src: /root/.ssh/authorized_keys
+    dest: /root/.ssh/authorized_keys.bak
+    remote_src: true
+    owner: root
+    group: root
 
-  - name: clear-user-auth-keys
-    ansible.builtin.copy:
-      dest: /home/{{ item }}/.ssh/authorized_keys
-      content: ''
-    loop: "{{ home_dirs.stdout_lines }}"
-    when: item not in whitelist
+- name: Clear user authorized keys
+  ansible.builtin.copy:
+    dest: /home/{{ item }}/.ssh/authorized_keys
+    content: ''
+  loop: "{{ home_dirs.stdout_lines }}"
+  when: item not in lock_users_whitelist

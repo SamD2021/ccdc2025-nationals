@@ -14,7 +14,7 @@
     remote_tmp_target_group: /tmp/user-group.out
     local_tmp_target: ../Enumerated_Systems/
   tasks:
-    - name: Gather-Active-User-Info
+    - name: Gather Active User Info
       ansible.builtin.shell: |
         echo "[!] Currently Logged in Users (w) [!]"
         w
@@ -22,12 +22,12 @@
         who
       register: logged_in
 
-    - name: Save-Remote-Active
+    - name: Save Remote Active
       ansible.builtin.copy:
         content: "{{ logged_in.stdout }}"
         dest: "{{ remote_tmp_target_active }}"
 
-    - name: Gather-User-Info-SH
+    - name: Gather User Info SH
       ansible.builtin.shell: |
         echo "[!] listing Users With Shell {{ item }} [!]"
         grep {{ item }} /etc/passwd | cut -d':' -f1
@@ -41,19 +41,19 @@
         - ksh
         - tcsh
 
-    - name: Concatenate-Output-SH
+    - name: Concatenate Output SH
       ansible.builtin.set_fact:
         combined_output_shell: "{{ shell_info.results | map(attribute='stdout') | join('\n') }}"
 
-    - name: Save-Remote-Shell
+    - name: Save Remote Shell
       ansible.builtin.copy:
         content: "{{ combined_output_shell }}"
         dest: "{{ remote_tmp_target_sh }}"
 
-    - name: Gather-User-Info-GP
+    - name: Gather User Info GP
       ansible.builtin.shell: |
         echo "[!] listing Users in Group {{ item }} [!]"
-        grep {{ item }} /etc/group |cut -d: -f4 | tr ',' '\n'
+        grep {{ item }} /etc/group | cut -d: -f4 | tr ',' '\n'
       register: group_info
       with_items:
         - sudo
@@ -63,16 +63,16 @@
         - shadow
         - adm
 
-    - name: Concatenate-Output-GP
+    - name: Concatenate Output GP
       ansible.builtin.set_fact:
         combined_output_group: "{{ group_info.results | map(attribute='stdout') | join('\n') }}"
 
-    - name: Save-Remote-Group
+    - name: Save Remote Group
       ansible.builtin.copy:
         content: "{{ combined_output_group }}"
         dest: "{{ remote_tmp_target_group }}"
 
-    - name: Fetch-Remote
+    - name: Fetch Remote
       ansible.builtin.fetch:
         src: "{{ item }}"
         dest: "{{ local_tmp_target }}"
@@ -82,8 +82,7 @@
         - "{{ remote_tmp_target_sh }}"
         - "{{ remote_tmp_target_group }}"
 
-
-    - name: Clean-Remote
+    - name: Clean Remote
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
