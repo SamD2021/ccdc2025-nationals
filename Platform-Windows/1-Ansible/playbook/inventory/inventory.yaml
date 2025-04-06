@@ -1,0 +1,12 @@
+all:
+  children:
+    windows:
+      hosts:
+        win1:
+          ansible_connection: winrm
+          ansible_host: 192.168.1.10
+          ansible_password: 1qazxsW@1
+          ansible_user: Administrator
+          ansible_winrm_port: 5985
+          ansible_winrm_server_cert_Validation: ignore
+          ansible_winrm_transport: basic

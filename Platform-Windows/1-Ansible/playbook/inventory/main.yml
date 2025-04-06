@@ -1,0 +1,24 @@
+- name: Ensure Temp directory exists
+  ansible.windows.win_file:
+    path: C:\Temp
+    state: directory
+
+- name: Download IPBan ZIP directly from GitHub
+  ansible.windows.win_shell: |
+    $ProgressPreference = 'SilentlyContinue'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri "https://github.com/DigitalRuby/IPBan/releases/download/3.0.0/IPBan-Windows-x64_3_0_0.zip" -OutFile "C:\Temp\IPBan.zip"
+
+- name: Extract IPBan ZIP to Program Files
+  ansible.windows.win_shell: |
+    Expand-Archive -Path "C:\Temp\IPBan.zip" -DestinationPath "C:\Program Files\IPBan" -Force
+
+- name: Register IPBan as a Windows service
+  ansible.windows.win_shell: |
+    sc.exe create IPBanService binPath= "C:\Program Files\IPBan\IPBan.exe" start= auto
+
+- name: Start IPBan service
+  ansible.windows.win_service:
+    name: IPBanService
+    start_mode: auto
+    state: started

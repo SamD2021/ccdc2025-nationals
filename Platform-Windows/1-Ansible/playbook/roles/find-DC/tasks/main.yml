@@ -1,0 +1,23 @@
+---
+- name: Get Domain role from WMIObject command
+  ansible.windows.win_shell: |
+    (Get-WMIObject Win32_ComputerSystem).DomainRole
+  register: domain_role_number
+  
+
+- name: Print domain role number
+  debug:
+    var: domain_role_number
+
+- name: Set fact with role number
+  ansible.builtin.set_fact:
+        domain_role_number: "{{ domain_role_number_raw.stdout | trim }}"
+
+- name: Set fact with role name
+  ansible.builtin.set_fact:
+    domain_role_name: "{{ domain_role_map[domain_role_number] | default('unknown_role') }}"
+
+- name: Add host to a role-based group
+  add_host:
+    name: "{{ inventory_hostname }}"
+    groups: "{{ domain_role_name }}"

@@ -1,0 +1,7 @@
+---
+- name: Run Tasks
+  hosts: all
+  gather_facts: no
+  roles:
+    - find-DC
+    - build-dynamic-ini

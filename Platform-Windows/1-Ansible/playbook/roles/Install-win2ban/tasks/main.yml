@@ -1,0 +1,29 @@
+---
+- name: Check elevation level
+  ansible.builtin.win_shell: whoami /groups | findstr "High"
+
+- name: Install IPBan via one-liner
+  ansible.windows.win_copy:
+    src: installwin2ban.ps1
+    dest: C:\Temp\
+
+- name: Verify IPBan exists
+  win_stat:
+    path: C:\Program Files\IPBan
+  register: ipban_program
+
+- debug:
+    var: ipban_program.stat.exists
+    
+- name: Ensure IPBan service is set to auto and started
+  ansible.windows.win_service:
+    name: IPBan
+    start_mode: auto
+    state: started
+
+# - name: Debug IPBan command
+#   win_shell: |
+#     $command = "Invoke-WebRequest -Uri 'https://github.com/DigitalRuby/IPBan/releases/latest/download/IPBan-Windows.zip' -OutFile 'C:\Temp\IPBan.zip'"
+#     Write-Output $command
+
+# Need to modify win2ban configs
