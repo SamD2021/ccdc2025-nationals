@@ -1,0 +1,28 @@
+---
+- name: Ensure apache is installed
+  package:
+    name: "{{ apache_conf_dir }}"
+    state: present
+
+- name: Ensure hardening config directory exists
+  file:
+    path: "/etc/{{ apache_conf_dir }}/conf-available"
+    state: directory
+    mode: '0755'
+
+- name: Deploy hardening config
+  template:
+    src: hardening.conf.j2
+    dest: "{{ apache_conf_d_dir }}/hardening.conf"
+  notify: Reload apache
+
+- name: Enable hardening config (Debian-only)
+  command: a2enconf hardening
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure Apache is running and enabled
+  service:
+    name: "{{ apache_service }}"
+    state: started
+    enabled: true
+
