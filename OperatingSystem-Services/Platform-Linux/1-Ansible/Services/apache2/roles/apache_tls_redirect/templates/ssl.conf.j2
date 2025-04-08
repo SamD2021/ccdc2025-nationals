@@ -1,0 +1,26 @@
+Listen 443 https
+<VirtualHost _default_:443>
+    DocumentRoot "/var/www/html"
+    ServerName localhost
+
+    SSLEngine on
+
+    {% if use_custom_cert %}
+    SSLCertificateFile {{ custom_cert_path }}
+    SSLCertificateKeyFile {{ custom_key_path }}
+    {% else %}
+    SSLCertificateFile /etc/httpd/ssl/apache-selfsigned.crt
+    SSLCertificateKeyFile /etc/httpd/ssl/apache-selfsigned.key
+    {% endif %}
+
+    <Directory "/var/www/html">
+        Options -Indexes
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    Header always set Strict-Transport-Security "max-age=31536000"
+    Header set X-Frame-Options SAMEORIGIN
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Content-Type-Options nosniff
+</VirtualHost>

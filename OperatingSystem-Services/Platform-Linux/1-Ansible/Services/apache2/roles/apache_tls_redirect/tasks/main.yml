@@ -1,0 +1,38 @@
+---
+- name: Ensure mod_ssl and openssl are installed
+  package:
+    name:
+      - mod_ssl
+      - openssl
+    state: present
+
+- name: Create SSL cert directory
+  file:
+    path: /etc/httpd/ssl
+    state: directory
+    mode: '0755'
+
+- name: Generate self-signed cert if no custom cert provided
+  command: >
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048
+    -keyout /etc/httpd/ssl/apache-selfsigned.key
+    -out /etc/httpd/ssl/apache-selfsigned.crt
+    -subj "/CN={{ ansible_fqdn | default('localhost') }}"
+  when: not use_custom_cert
+  args:
+    creates: /etc/httpd/ssl/apache-selfsigned.crt
+
+- name: Deploy TLS config (uses custom or self-signed cert)
+  template:
+    src: ssl.conf.j2
+    dest: /etc/httpd/conf.d/ssl.conf
+
+- name: Deploy HTTP to HTTPS redirect
+  template:
+    src: redirect.conf.j2
+    dest: /etc/httpd/conf.d/redirect.conf
+
+- name: Restart Apache
+  service:
+    name: httpd
+    state: restarted

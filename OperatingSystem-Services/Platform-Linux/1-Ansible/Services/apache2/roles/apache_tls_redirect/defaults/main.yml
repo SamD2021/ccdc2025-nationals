@@ -1,0 +1,5 @@
+# Use internal CA certs if provided
+use_custom_cert: false
+custom_cert_path: /etc/httpd/ssl/custom.crt
+custom_key_path: /etc/httpd/ssl/custom.key
+
