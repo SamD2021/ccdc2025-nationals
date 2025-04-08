@@ -7,6 +7,7 @@
 
   roles:
     - role: Account-Creation
+    - role: Account-Password-Rotation
     - role: Auditd
     - role: Platform-Linux/1-Ansible/First-15/roles/Backup-Clear-Auth-Key
     - role: Backups

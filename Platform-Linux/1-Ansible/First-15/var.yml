@@ -99,3 +99,16 @@ deb_remove_pkgs:
   - wget
   - netcat-openbsd
   - curl
+
+#password rotation
+---
+accounts:
+  - user1
+  - user2
+  - user3
+
+whitelist:
+  - admin
+  - service_account
+
+output_csv: /path/to/passwords.csv
