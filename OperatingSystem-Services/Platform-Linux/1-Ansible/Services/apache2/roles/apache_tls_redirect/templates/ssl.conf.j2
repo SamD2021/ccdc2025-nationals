@@ -1,7 +1,7 @@
-Listen 443 https
+Listen 443
 <VirtualHost _default_:443>
     DocumentRoot "/var/www/html"
-    ServerName localhost
+    ServerName {{ server_domain }}
 
     SSLEngine on
 
@@ -9,8 +9,8 @@ Listen 443 https
     SSLCertificateFile {{ custom_cert_path }}
     SSLCertificateKeyFile {{ custom_key_path }}
     {% else %}
-    SSLCertificateFile /etc/httpd/ssl/apache-selfsigned.crt
-    SSLCertificateKeyFile /etc/httpd/ssl/apache-selfsigned.key
+    SSLCertificateFile {{ apache_ssl_dir }}/apache-selfsigned.crt
+    SSLCertificateKeyFile {{ apache_ssl_dir }}/apache-selfsigned.key
     {% endif %}
 
     <Directory "/var/www/html">

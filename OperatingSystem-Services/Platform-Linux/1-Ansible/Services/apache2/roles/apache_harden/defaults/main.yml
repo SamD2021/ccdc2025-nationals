@@ -1,4 +1,2 @@
 apache_service: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
 apache_conf_dir: "{{ '/etc/apache2' if ansible_os_family == 'Debian' else '/etc/httpd' }}"
-apache_conf_d_dir: "{{ apache_conf_dir ~ '/conf-available' if ansible_os_family == 'Debian' else apache_conf_dir ~ '/conf.d' }}"
-

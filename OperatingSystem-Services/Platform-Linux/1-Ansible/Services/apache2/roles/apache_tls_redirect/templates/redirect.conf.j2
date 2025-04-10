@@ -1,4 +1,4 @@
 <VirtualHost *:80>
-    ServerName localhost
-    Redirect permanent / https://localhost/
+    ServerName {{ server_domain }}
+    Redirect permanent / https://{{ server_domain }}/
 </VirtualHost>
