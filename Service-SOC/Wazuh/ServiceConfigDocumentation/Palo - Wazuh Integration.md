@@ -39,6 +39,9 @@ Local-ip - Ip of the Wazuh manager
 ### Palo Alto Configuration ###
 
 1. Device -> Syslog -> Add (Profile name and server name + details)
-2. Objects -> Log Forwarding -> Add (Profile name) -> Add -> Syslog specifically 
-3. Policies -> Security -> (For each security profile click and) -> Actions -> Add Wazuh to the Log Forwarding
+![alt text](<../Images/image15.png>)
+2. Objects -> Log Forwarding -> Add (Profile name) -> Add -> Syslog specifically  
+![alt text](<../Images/image16.png>)
+3. Policies -> Security -> (For each security profile click and) -> Actions -> Add Wazuh to the Log Forwarding   
+![alt text](<../Images/image17.png>)
 4. Commit Changes (should only take 10 years)
