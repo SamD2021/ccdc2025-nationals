@@ -22,7 +22,7 @@ conf_name: audit_rules.conf # Change to something else if wanted, look in files/
 # Stopping and disable Services
 services_to_stop:
   - cockpit
-  - rsync
+  # - rsync
   - nis
 Is_Masked: true # Modify this mask or unmask services
 State: stopped

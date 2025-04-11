@@ -30,7 +30,6 @@
     debug:
       var: home_dirs.stdout_lines
 
-      #TODO: probably good to instead to have all non-whitelisted users shell be /sbin/nologin instead of lock
   - name: lock-users
     ansible.builtin.user:
       name: "{{ item }}"
