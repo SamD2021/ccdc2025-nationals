@@ -1,81 +1,125 @@
-from dpkt import pcap, ethernet, ip, tcp, udp, icmp
-from pandas import DataFrame
+from collections import Counter
+from dpkt import pcap, ethernet, ip, tcp, udp
+from numpy import diff, mean, std
 from socket import inet_ntoa
-from hashlib import new as new_hash
-
 
 PCAP_FILE = 'received.pcap'
+BATCH_THRESHOLD = 10
+DEST_IP = '192.168.6.254'
 
 
-def read_all_packets(pcap_file=PCAP_FILE):
-    results = []
+def read_all_tcp_packets(pcap_file=PCAP_FILE):
+    tcp_connections = {}
 
     with open(pcap_file, 'rb') as f:
-        for timestamp, buf in pcap.Reader(f):
+        for ts, buf in pcap.Reader(f):
             eth = ethernet.Ethernet(buf)
 
             if isinstance(eth.data, ip.IP):
                 packet = eth.data
 
-                payload = ''
-                if isinstance(packet.data, tcp.TCP) \
-                        or isinstance(packet.data, udp.UDP) \
-                        or isinstance(packet.data, icmp.ICMP):
-                    payload = packet.data.data
+                if isinstance(packet.data, tcp.TCP):
+                    src_ip = inet_ntoa(packet.src)
+                    dst_ip = inet_ntoa(packet.dst)
+                    dst_port = packet.data.dport
 
-                src_ip = inet_ntoa(packet.src)
-                dst_ip = inet_ntoa(packet.dst)
-                dst_port = packet.data.dport
-                protocol = packet.p  # TCP=6, UDP=17, ICMP=1 
-                packet_size = len(payload)
+                    tcp_flags = packet.data.flags
+                    if (tcp_flags & tcp.TH_SYN) and \
+                            (DEST_IP == '' or DEST_IP == dst_ip):
+                        key = (src_ip, dst_ip, dst_port)
 
-                results.append([
-                    timestamp,
-                    payload,
-                    src_ip,
-                    dst_ip,
-                    dst_port,
-                    protocol,
-                    packet_size
-                ])
+                        if key not in tcp_connections:
+                            tcp_connections[key] = {'timestamps': []}
 
-    return results
+                        prev_ts = 0
+                        if len(tcp_connections[key]['timestamps']) > 0:
+                            prev_ts = tcp_connections[key]['timestamps'][-1]
+
+                        if ts - prev_ts > BATCH_THRESHOLD:
+                            tcp_connections[key]['timestamps'].append(ts)
+
+    return tcp_connections
 
 
-def calculate_hash(payload, algorithm='sha256'):
-    return new_hash(algorithm, payload).hexdigest()
+def format_tcp_packets(tcp_packets):
+    for key, data in tcp_packets.items():
+        src_ip, dst_ip, dst_port = key
+        timestamps = data['timestamps']
+
+        mean_diff = 0.0
+        std_diff = 0.0
+        if len(timestamps) > 1:
+            diffs = diff(sorted(timestamps))
+            mean_diff = mean(diffs)
+            std_diff = std(diffs)
+
+        print(f"Connection: {src_ip} -> {dst_ip}:{dst_port}")
+        print(f"  Packets Difference (Mean): {mean_diff:.6f} sec")
+        print(f"  Packets Difference (STD): {std_diff:.6f} sec")
+        print(f"  Total Packets Received: {len(timestamps)}")
+        print(f"  Total Duration of Packets: {timestamps[-1] - timestamps[0]}")
+        print()
 
 
-def format_results(results):
-    df = DataFrame(results, columns=[
-        'timestamp',
-        'payload',
-        'src_ip',
-        'dst_ip',
-        'dst_port',
-        'protocol',
-        'packet_size'        
-    ])
+def read_all_udp_packets(pcap_file=PCAP_FILE):
+    udp_connections = {}
 
-    df['hash'] = df['payload'].apply(calculate_hash)
+    with open(pcap_file, 'rb') as f:
+        for ts, buf in pcap.Reader(f):
+            eth = ethernet.Ethernet(buf)
 
-    df = df.drop(['timestamp', 'payload'], axis=1)
+            if isinstance(eth.data, ip.IP):
+                packet = eth.data
 
-    grouped = df.groupby(['hash', 'src_ip', 'dst_ip', 'dst_port', 'protocol'])
-    grouped = grouped.agg(
-        count=('packet_size', 'count'),
-        packet_size=('packet_size', 'mean'),
-    )
+                if isinstance(packet.data, udp.UDP):
+                    src_ip = inet_ntoa(packet.src)
+                    dst_ip = inet_ntoa(packet.dst)
+                    dst_port = packet.data.dport
+                    length = len(packet)
 
-    grouped = grouped.sort_values(by='count', ascending=False)
+                    if DEST_IP == '' or DEST_IP == dst_ip:
+                        key = (src_ip, dst_ip, dst_port)
 
-    return grouped
+                        if key not in udp_connections:
+                            udp_connections[key] = {
+                                'lengths': [],
+                                'timestamps': []
+                            }
+
+                        udp_connections[key]['lengths'].append(length)
+
+                        prev_ts = 0
+                        if len(udp_connections[key]['timestamps']) > 0:
+                            prev_ts = udp_connections[key]['timestamps'][-1]
+
+                        if ts - prev_ts > BATCH_THRESHOLD:
+                            udp_connections[key]['timestamps'].append(ts)
+
+    return udp_connections
+
+
+def format_udp_packets(udp_packets):
+    for key, data in udp_packets.items():
+        src_ip, dst_ip, dst_port = key
+        lengths = data['lengths']
+        timestamps = data['timestamps']
+
+        mean_diff = 0.0
+        std_diff = 0.0
+        if len(timestamps) > 1:
+            diffs = diff(sorted(timestamps))
+            mean_diff = mean(diffs)
+            std_diff = std(diffs)
+
+        print(f"Connection: {src_ip} -> {dst_ip}:{dst_port}")
+        print(f"  Packets Difference (Mean): {mean_diff:.6f} sec")
+        print(f"  Packets Difference (STD): {std_diff:.6f} sec")
+        print(f"  Packets Lengths: {list(Counter(lengths).items())}")
+        print(f"  Total Duration of Packets: {timestamps[-1] - timestamps[0]}")
+        print()
 
 
 if __name__ == '__main__':
-    results = read_all_packets()
-    grouped = format_results(results)
 
-    for index, row in grouped.iterrows():
-        print('')
-        print(row)
+    udp_packets = read_all_udp_packets()
+    format_udp_packets(udp_packets)
