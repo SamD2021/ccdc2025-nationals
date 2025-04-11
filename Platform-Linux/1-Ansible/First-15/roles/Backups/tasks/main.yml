@@ -1,6 +1,6 @@
 ##
-#
 # Usage: Setup Cron Restrictions
+#
 # Initially written by a Tired Matthew Harper
 ##
 
@@ -180,16 +180,7 @@
   with_items:
     - passwd
     - group
-
-- name: Backup Shadow File
-  ansible.builtin.copy:
-    remote_src: true
-    src: /etc/shadow
-    dest: /backups/shadow
-    owner: root
-    group: root
-    mode: u=rw,g=r,o=
-
+  
 - name: Backup Full Etc Directory
   ansible.builtin.copy:
     remote_src: true
