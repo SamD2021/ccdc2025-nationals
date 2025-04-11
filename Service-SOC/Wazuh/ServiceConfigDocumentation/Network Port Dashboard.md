@@ -58,19 +58,19 @@ Add the rules below to the ```/var/ossec/etc/rules/local_rules.xml``` file to ge
   <rule id="100311" level="5" >
       <if_sid>100310</if_sid>
       <field name="operation_type">INSERTED</field>
-      <description>The port: $(port.local_port) was OPENED. </description>
+      <description>Port: $(port.local_port) OPENED. </description>
   </rule>
 
   <rule id="100312" level="5" >
       <if_sid>100310</if_sid>
       <field name="operation_type">MODIFIED</field>
-      <description>The port: $(port.local_port) was MODIFIED. </description>
+      <description>Port: $(port.local_port) MODIFIED. </description>
   </rule>
 
   <rule id="100313" level="5" >
       <if_sid>100310</if_sid>
       <field name="operation_type">DELETED</field>
-      <description>The port: $(port.local_port) was CLOSED. </description>
+      <description>Port: $(port.local_port) CLOSED. </description>
   </rule>
 </group>
 ```

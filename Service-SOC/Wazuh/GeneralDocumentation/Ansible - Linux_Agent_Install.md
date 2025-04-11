@@ -1,6 +1,9 @@
-## Ansible Wazuh Agent Deployment (Linux) ##
+## Ansible Wazuh Agent Deployment (Linux) OUTDATED ##
 What this is:  
 Short guide showing on how to deploy Wazuh agent, default Windows and custom Linux with Ansible. This was done on a UBUNTU machine.  
+OUTDATED  
+OUTDATED  
+OUTDATED
 
 Playbook - List of commands that are sent out to the managed nodes?? <br>
 Inventory File - List of machines w/ IP adress plus login info that playbook commands will run on
