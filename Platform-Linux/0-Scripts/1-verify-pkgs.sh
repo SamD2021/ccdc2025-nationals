@@ -1,3 +1,10 @@
+# Check if the scrip is ran as root.
+# $EUID is a env variable that contains the users UID
+# -ne 0 is not equal zero
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
 
 deb_packages=(
     "bash"
@@ -37,6 +44,8 @@ rhel_packages=(
 )
 
 . /etc/os-release
+
+echo "[!] Checking Various Packages, use \`dpkg --verify\` or \`rpm -Va\` to check all [!]"
 
 if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "linuxmint" || "$ID" == "raspbian" ]]; then
     echo "Detected Debian-based system. Running Debian package verification..."

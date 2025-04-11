@@ -29,7 +29,8 @@ echo "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.d/ccdc.conf
 echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/ccdc.conf 
 # Enable ASLR : mmap base, heap, stack and VDSO page are randomized
 echo "kernel.randomize_va_space = 2" >> /etc/sysctl.d/ccdc.conf 
-
+# Limit PTrace Attachments
+echo "kernel.yama.ptrace_scope = 1" >> /etc/sysctl.d/ccdc.conf
 
 ###### NEW
 # Enable Reboot after Kernel Panic (Crash due to intenal Kernel Errors)
@@ -44,8 +45,9 @@ sysctl -p /etc/sysctl.d/ccdc.conf
 # Flush the routing table
 sysctl -w net.ipv4.route.flush=1
 
+
 # Disable and Stop rsync it is considered insecure
-systemctl --now disable rsync 
+# systemctl --now disable rsync 
 # Disable and Stop nis (If it is there) --> Not needed with purge?
 systemctl --now disable nis 
 

@@ -33,6 +33,19 @@ iptables -N SSH-INITIAL-LOG
 iptables -t mangle -N INVALID-LOG
 # Make Drop Packet Chain
 # iptables -N DROP-LOG
+# Log ICMP Echo Packets (Inbound)
+iptables -N ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+iptables -N HTTP-LOG
+# Log New FTP Connections (Port)
+iptables -N FTP-LOG
+# Log New Telnet Connections (Port)
+iptables -N TELNET-LOG
+# Log Pop3
+iptables -N POP-LOG
+# Log SMTP
+iptables -N SMTP-LOG
+
 
 ## IPv6
 # Make Logging Chains (General)
@@ -42,23 +55,133 @@ ip6tables -N SSH-INITIAL-LOG
 ip6tables -t mangle -N INVALID-LOG
 # Make Drop Packet Chain
 # ip6tables -N DROP-LOG
+# Log ICMP Echo Packets (Inbound)
+ip6tables -N ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+ip6tables -N HTTP-LOG
+# Log New FTP Connections (Port)
+ip6tables -N FTP-LOG
+# Log New Telnet Connections (Port)
+ip6tables -N TELNET-LOG
+# Log Pop3
+ip6tables -N POP-LOG
+# Log SMTP
+ip6tables -N SMTP-LOG
+
 # -------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------- Setup SSH-INITIAL-LOG chain ---------------------------------------------------------
 ## IPv4
 # Use the limit module to limit the number of logs made
 # Prefix with IPTables-SSH-INITIAL:
-# Give it a log level of 5 (Notification) 
+# Give it a log level of 5 (Notification)
 iptables -A SSH-INITIAL-LOG -m limit --limit 4/sec -j LOG --log-prefix "IPTables-SSH-INITIAL: " --log-level 5
-iptables -A SSH-INITIAL-LOG -j RETURN 
+iptables -A SSH-INITIAL-LOG -j RETURN
+
+# ICMP Log Chain
+iptables -A ICMP-LOG -p icmp --icmp-type 0 -m limit --limit 4/sec -j LOG --log-prefix "ICMP-ECHO: " --log-level 5
+iptables -A ICMP-LOG -j RETURN
+
+# HTTP/S Logs
+iptables -A HTTP-LOG -p tcp --dport 443 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTPS-Port-New: " --log-level 5
+iptables -A HTTP-LOG -p tcp --dport 80 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTP-Port-New: " --log-level 5
+iptables -A HTTP-LOG -j RETURN
+
+# FTP
+iptables -A FTP-LOG -p tcp --dport 21 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Control-Port-New: " --log-level 5
+iptables -A FTP-LOG -p tcp --dport 20 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Data-Port-New: " --log-level 5
+iptables -A FTP-LOG -j RETURN
+
+# Telnet
+iptables -A TELNET-LOG -p tcp --dport 23 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "Telnet-Port-New: " --log-level 5
+iptables -A TELNET-LOG -j RETURN
+
+# Pop3 110 995
+iptables -A POP-LOG -p tcp --dport 110 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "POP-Port-New: " --log-level 5
+iptables -A POP-LOG -p tcp --dport 995 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "POP-Port-New: " --log-level 5
+iptables -A POP-LOG -j RETURN
+
+# 465 25 587
+iptables -A SMTP-LOG -p tcp --dport 25 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "SMTP-Port-New: " --log-level 5
+iptables -A SMTP-LOG -p tcp --dport 465 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "SMTP-Port-New: " --log-level 5
+iptables -A SMTP-LOG -p tcp --dport 587 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "SMTP-Port-New: " --log-level 5
+iptables -A SMTP-LOG -j RETURN
 
 ## IPv6
 # Use the limit module to limit the number of logs made
 # Prefix with IPTables-SSH-INITIAL:
-# Give it a log level of 5 (Notification) 
+# Give it a log level of 5 (Notification)
 ip6tables -A SSH-INITIAL-LOG -m limit --limit 4/sec -j LOG --log-prefix "IP6Tables-SSH-INITIAL: " --log-level 5
-ip6tables -A SSH-INITIAL-LOG -j RETURN 
+ip6tables -A SSH-INITIAL-LOG -j RETURN
+
+# ICMP Log Chain
+ip6tables -A ICMP-LOG -p icmp --icmp-type 0 -m limit --limit 4/sec -j LOG --log-prefix "ICMP-ECHO: " --log-level 5
+iptables -A ICMP-LOG -j RETURN
+
+# HTTP/S Logs
+ip6tables -A HTTP-LOG -p tcp --dport 443 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTPS-Port-New: " --log-level 5
+ip6tables -A HTTP-LOG -p tcp --dport 80 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTP-Port-New: " --log-level 5
+ip6tables -A HTTP-LOG -j RETURN
+
+# FTP
+ip6tables -A FTP-LOG -p tcp --dport 21 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Control-Port-New: " --log-level 5
+ip6tables -A FTP-LOG -p tcp --dport 20 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Data-Port-New: " --log-level 5
+ip6tables -A FTP-LOG -j RETURN
+
+# Telnet
+ip6tables -A TELNET-LOG -p tcp --dport 23 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "Telnet-Port-New: " --log-level 5
+ip6tables -A TELNET-LOG -j RETURN
+
+ip6tables -A POP-LOG -p tcp --dport 110 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "POP-Port-New: " --log-level 5
+ip6tables -A POP-LOG -p tcp --dport 995 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "POP-Port-New: " --log-level 5
+ip6tables -A POP-LOG -j RETURN
+
+# 465 25 587
+ip6tables -A SMTP-LOG -p tcp --dport 25 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "SMTP-Port-New: " --log-level 5
+ip6tables -A SMTP-LOG -p tcp --dport 465 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "SMTP-Port-New: " --log-level 5
+ip6tables -A SMTP-LOG -p tcp --dport 587 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "SMTP-Port-New: " --log-level 5
+ip6tables -A SMTP-LOG -j RETURN
 # ----------------------------------------------------------------------------------------------------------------------------
+
+
+# ------------------------------------------------ Log Chains---------------------------------------------------------
+
+# Log ICMP Echo Packets (Inbound)
+iptables -A INPUT -j  ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+iptables -A INPUT -j HTTP-LOG
+# Log New FTP Connections (Port)
+iptables -A INPUT -j FTP-LOG
+# Log New Telnet Connections (Port)
+iptables -A INPUT -j TELNET-LOG
+
+# Log ICMP Echo Packets (Inbound)
+ip6tables -A INPUT -j ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+ip6tables -A INPUT -j HTTP-LOG
+# Log New FTP Connections (Port)
+ip6tables -A INPUT -j FTP-LOG
+# Log New Telnet Connections (Port)
+ip6tables -A INPUT -j TELNET-LOG
+
+
+# Log ICMP Echo Packets (Inbound)
+iptables -A OUTPUT -j ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+iptables -A OUTPUT -j HTTP-LOG
+# Log New FTP Connections (Port)
+iptables -A OUTPUT -j FTP-LOG
+# Log New Telnet Connections (Port)
+iptables -A OUTPUT -j TELNET-LOG
+
+# Log ICMP Echo Packets (Inbound)
+ip6tables -A OUTPUT -j ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+ip6tables -A OUTPUT -j HTTP-LOG
+# Log New FTP Connections (Port)
+ip6tables -A OUTPUT -j FTP-LOG
+# Log New Telnet Connections (Port)
+ip6tables -A OUTPUT -j TELNET-LOG
 
 # ------------------------------------------------ INVALID-LOG chain ---------------------------------------------------------
 ## IPv4
@@ -164,7 +287,6 @@ ip6tables -A ICMP-FLOOD -j ACCEPT
 # ip6tables -A GLUSTER-OUT -p tcp -m multiport --dport 49152:49162 -j ACCEPT
 # # ip6tables -A GLUSTER -p udp -m multiport --dport 49152:49162 -m conntrack --ctstate NEW -j ACCEPT # UDP is not mentioned, we will see if it works without
 # # -------------------------------------------------------------------------------------------------------------------
-
 
 # ------------------------------------------------ MANGLE tb, PREROUTING chain -----------------------------------------------
 ## IPv4

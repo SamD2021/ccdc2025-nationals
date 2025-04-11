@@ -13,9 +13,9 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-# Remove deny file 
-echo "[-] Removing cron/at deny files" 
-rm /etc/at.deny 
+# Remove deny file
+echo "[-] Removing cron/at deny files"
+rm /etc/at.deny
 rm /etc/cron.deny
 echo "[+] Adding cron/at allow files"
 touch /etc/cron.allow
@@ -31,9 +31,8 @@ chown root:root /etc/at.allow
 
 # https://www.cyberciti.biz/faq/howto-linux-unix-start-restart-cron/
 echo "[!!] Enable cron"
-if [ -f "/etc/redhat-release" ] | [ -f "/etc/alpine-release" ] ; then 
-  systemctl --now enable crond 
+if [ -f "/etc/redhat-release" ] | [ -f "/etc/alpine-release" ] ; then
+  systemctl --now enable crond
 else
   systemctl --now enable cron
 fi
-  

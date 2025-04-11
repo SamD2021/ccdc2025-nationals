@@ -33,6 +33,14 @@ iptables -N SSH-INITIAL-LOG
 iptables -t mangle -N INVALID-LOG
 # Make Drop Packet Chain
 # iptables -N DROP-LOG
+# Log ICMP Echo Packets (Inbound)
+iptables -N ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+iptables -N HTTP-LOG
+# Log New FTP Connections (Port)
+iptables -N FTP-LOG
+# Log New Telnet Connections (Port)
+iptables -N TELNET-LOG
 
 ## IPv6
 # Make Logging Chains (General)
@@ -42,22 +50,67 @@ ip6tables -N SSH-INITIAL-LOG
 ip6tables -t mangle -N INVALID-LOG
 # Make Drop Packet Chain
 # ip6tables -N DROP-LOG
+# Log ICMP Echo Packets (Inbound)
+ip6tables -N ICMP-LOG
+# Log New Inbound HTTP/HTTPs Connections
+ip6tables -N HTTP-LOG
+# Log New FTP Connections (Port)
+ip6tables -N FTP-LOG
+# Log New Telnet Connections (Port)
+ip6tables -N TELNET-LOG
+
 # -------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------- Setup SSH-INITIAL-LOG chain ---------------------------------------------------------
 ## IPv4
 # Use the limit module to limit the number of logs made
 # Prefix with IPTables-SSH-INITIAL:
-# Give it a log level of 5 (Notification) 
+# Give it a log level of 5 (Notification)
 iptables -A SSH-INITIAL-LOG -m limit --limit 4/sec -j LOG --log-prefix "IPTables-SSH-INITIAL: " --log-level 5
-iptables -A SSH-INITIAL-LOG -j RETURN 
+iptables -A SSH-INITIAL-LOG -j RETURN
+
+# ICMP Log Chain
+iptables -A ICMP-LOG -p icmp --icmp-type 0 -m limit --limit 4/sec -j LOG --log-prefix "ICMP-ECHO: " --log-level 5
+iptables -A ICMP-LOG -j RETURN
+
+# HTTP/S Logs
+iptables -A HTTP-LOG -p tcp --dport 443 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTPS-Port-New: " --log-level 5
+iptables -A HTTP-LOG -p tcp --dport 80 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTP-Port-New: " --log-level 5
+iptables -A HTTP-LOG -j RETURN
+
+# FTP
+iptables -A FTP-LOG -p tcp --dport 21 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Control-Port-New: " --log-level 5
+iptables -A FTP-LOG -p tcp --dport 20 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Data-Port-New: " --log-level 5
+iptables -A FTP-LOG -j RETURN
+
+# Telnet
+iptables -A FTP-LOG -p tcp --dport 23 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Control-Port-New: " --log-level 5
+iptables -A FTP-LOG -j RETURN
 
 ## IPv6
 # Use the limit module to limit the number of logs made
 # Prefix with IPTables-SSH-INITIAL:
-# Give it a log level of 5 (Notification) 
+# Give it a log level of 5 (Notification)
 ip6tables -A SSH-INITIAL-LOG -m limit --limit 4/sec -j LOG --log-prefix "IP6Tables-SSH-INITIAL: " --log-level 5
-ip6tables -A SSH-INITIAL-LOG -j RETURN 
+ip6tables -A SSH-INITIAL-LOG -j RETURN
+
+# ICMP Log Chain
+ip6tables -A ICMP-LOG -p icmp --icmp-type 0 -m limit --limit 4/sec -j LOG --log-prefix "ICMP-ECHO: " --log-level 5
+iptables -A ICMP-LOG -j RETURN
+
+# HTTP/S Logs
+ip6tables -A HTTP-LOG -p tcp --dport 443 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTPS-Port-New: " --log-level 5
+ip6tables -A HTTP-LOG -p tcp --dport 80 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "HTTP-Port-New: " --log-level 5
+ip6tables -A HTTP-LOG -j RETURN
+
+# FTP
+ip6tables -A FTP-LOG -p tcp --dport 21 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Control-Port-New: " --log-level 5
+ip6tables -A FTP-LOG -p tcp --dport 20 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Data-Port-New: " --log-level 5
+ip6tables -A FTP-LOG -j RETURN
+
+# Telnet
+ip6tables -A FTP-LOG -p tcp --dport 23 -m conntrack --ctstate NEW -m limit --limit 4/sec -j LOG --log-prefix "FTP-Control-Port-New: " --log-level 5
+ip6tables -A FTP-LOG -j RETURN
 # ----------------------------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------------ INVALID-LOG chain ---------------------------------------------------------
@@ -361,14 +414,6 @@ ip6tables -A OUTPUT -p tcp --dport 80 -j ACCEPT
 ip6tables -A OUTPUT -p tcp --sport 443 -j ACCEPT
 ip6tables -A OUTPUT -p tcp --sport 80 -j ACCEPT
 
-###### Wahzuh
-## IPv4
-iptables -A OUTPUT -p tcp --sport 1514 -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 1514 -j ACCEPT
-
-## IPv6
-ip6tables -A OUTPUT -p tcp --sport 1514 -j ACCEPT
-ip6tables -A OUTPUT -p tcp --dport 1514 -j ACCEPT
 
 ###### ICMP
 #### IPv4
@@ -441,15 +486,15 @@ ip6tables -A OUTPUT -p icmpv6 --icmpv6-type 153 -j ACCEPT
 
 # ----------------------------------------------- POLICIES  ------------------------------------------------------------------
 # Set defualt policy of All FILTER chains to DROP
-## IPv4
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-iptables -P OUTPUT DROP
+# ## IPv4
+# iptables -P INPUT DROP
+# iptables -P FORWARD DROP
+# iptables -P OUTPUT DROP
 
-##IPv6
-ip6tables -P INPUT DROP
-ip6tables -P OUTPUT DROP
-ip6tables -P FORWARD DROP
+# ##IPv6
+# ip6tables -P INPUT DROP
+# ip6tables -P OUTPUT DROP
+# ip6tables -P FORWARD DROP
 
 # ----------------------------------------------------------------------------------------------------------------------------
 

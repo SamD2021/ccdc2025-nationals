@@ -13,9 +13,9 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-# Remove deny file 
-echo "[-] Removing cron/at deny files" 
-rm /etc/at.deny 
+# Remove deny file
+echo "[-] Removing cron/at deny files"
+rm /etc/at.deny
 rm /etc/cron.deny
 echo "[+] Adding cron/at allow files"
 touch /etc/cron.allow
