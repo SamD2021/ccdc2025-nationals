@@ -1,0 +1,65 @@
+###############################################
+# Runs tree on a target system
+# and gathers information 
+# Author: Chris Morales
+# Tested on: Ubuntu, Debian, RHEL
+###############################################
+
+# tree -pasugDRlf -I <thing1|thing2|...> 
+# -p - Print the file type and permissions.
+# -a - Print all files and directories.
+# -s - Print the file size in bytes.
+# -u - Print the file owner.
+# -g - Print the file group.
+# -D - Print date of the last modification time for the file listed 
+# -R - Recurse into subdirectories.
+# -l - Follow symlinks.
+# -f - Prints the full path prefix (place where you're running this from).
+# -I - ignores paths which match the pattern. | indicates mulitiple directories wanting to ignore.
+
+---
+  - name: Install the tree package
+    ansible.builtin.package:
+      name: tree
+      state: present
+    when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+    # Ignoring /proc, /sys, /dev, and /run as
+    # they are not pertinent to us at the moment.
+  - name: Gather file info from entire file system
+    ansible.builtin.shell: |
+      printf "\n"
+      date
+      printf "\n"
+      sudo tree -pasugDRlf / -I 'proc|sys|dev|run|modules|backups|lib|snap|.ansible' | grep -Ev 'linux-headers'
+    register: tree_list
+    ignore_errors: true
+
+  # - name: Ensure the local target directory is made
+  #   file:
+  #     path: "{{ results_dir }}/tree_list"
+  #     state: directory
+  #   delegate_to: localhost
+
+  # - name: Save results to the controller
+  #   ansible.builtin.copy:
+  #     content: "{{ tree_list.stdout }}"
+  #     dest: "{{ results_dir }}/tree_list/{{ ansible_hostname }}-{{ inventory_hostname }}-tree_list.txt"
+  #     mode: '0644'
+  #   delegate_to: localhost
+
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/tree_list/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ tree_list.stdout }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/tree_list/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3

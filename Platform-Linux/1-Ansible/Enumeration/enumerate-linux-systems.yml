@@ -1,0 +1,31 @@
+###############################
+# Author: Chris Morales
+###############################
+- name: Preamble
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+    - name: Set timestamp and results dir for the session
+      set_fact:
+        timestamp: "{{ ansible_date_time.month }}-{{ ansible_date_time.day }}-{{ ansible_date_time.year }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}"
+        results_dir: "{{ playbook_dir }}/Enumerated_Systems/"
+
+- name: Enumerate Linux Systems
+  hosts: linux
+  gather_facts: true
+  become: true
+  vars:
+    timestamp: "{{ hostvars['localhost'].timestamp }}"
+    results_dir: "{{ hostvars['localhost'].results_dir }}"
+  roles:
+    - Auth_Keys
+    - Processes
+    - Cron
+    - File-System-Snapshot
+    - Shadow
+    - SUID
+    - Users-Info
+    - Hashes
+    - Host-Network
+    - Services
+    - Sudoers

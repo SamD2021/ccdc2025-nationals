@@ -1,0 +1,38 @@
+##
+# Usage: Logs Authorized Key File locations and the authorized keys themselves
+#
+# Initially written by a Tired Matthew Harper
+# Modified, tested and verified by Chris Morales - Ubuntu, Debian, RHEL
+##
+
+---
+  - name: Gather-SSH-AuthKey-Info
+    ansible.builtin.shell: |
+      printf "[!] AUTHORIZED KEY FILES [!]\n"
+      cat /etc/ssh/sshd_config | grep -i AuthorizedKeysFile
+      printf "\n[!] AUTHORIZED KEYS PER USER [!]\n"
+      awk -F: '$7 !~ /(nologin|false)/ && $1 != "nobody" {print $1 ":" $6 ":" $3}' /etc/passwd | while IFS=":" read user home uid; do
+        keyfile="$home/.ssh/authorized_keys"
+        if [ -f "$keyfile" ]; then
+          echo "--- $user (UID: $uid) ---"
+          head -n {{ key_num_lines }} "$keyfile"
+          echo
+        fi
+      done
+    register: auth_out
+    ignore_errors : true
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/authorized_keys/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ auth_out.stdout }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/authorized_keys/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3

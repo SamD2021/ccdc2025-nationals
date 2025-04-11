@@ -1,0 +1,13 @@
+# Global variables
+
+# Hashes
+binary_directories:
+  - /bin
+  - /usr/bin
+  - /sbin
+  - /usr/sbin
+hash_command: md5sum
+
+# Auth Keys
+key_num_lines: 30
+

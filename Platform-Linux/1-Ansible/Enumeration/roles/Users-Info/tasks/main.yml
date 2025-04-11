@@ -1,0 +1,70 @@
+###############################################
+# Gathers a list of user information
+# both groups and passwd file for their shell
+# and saves it to the controller. 
+# Author: Chris Morales
+# Tested on: Ubuntu, Debian, RHEL
+###############################################
+
+---
+  - name: Get contents of /etc/passwd
+    ansible.builtin.shell: |
+      cat /etc/passwd
+    register: passwd_list
+    ignore_errors: true
+  
+  - name: Get contents of the groups file
+    ansible.builtin.shell: |
+      cat /etc/group
+    register: groups_list
+    ignore_errors: true
+
+  - name: Combine the two together
+    set_fact:
+      user_info_combined: |
+        {{ passwd_list.stdout }}
+
+        ------------------------------------------------
+        
+        {{ groups_list.stdout }}
+
+  # - name: Ensure the local target directory is made
+  #   file:
+  #     path: "{{ results_dir }}/user-info/passwd/"
+  #     state: directory
+  #   delegate_to: localhost
+
+  # - name: Save results to the controller
+  #   ansible.builtin.copy:
+  #     content: "{{ passwd_list.stdout }}"
+  #     dest: "{{ results_dir }}/user-info/passwd/{{ ansible_hostname }}-{{ inventory_hostname }}-passwd_list.txt"
+  #     mode: '0644'
+  #   delegate_to: localhost
+
+  # # - name: Ensure the local target directory is made
+  # #   file:
+  # #     path: "{{ results_dir }}/user-info/groups/"
+  # #     state: directory
+  # #   delegate_to: localhost
+
+  # # - name: Save results to the controller
+  # #   ansible.builtin.copy:
+  # #     content: "{{ groups_list.stdout }}"
+  # #     dest: "{{ results_dir }}/user-info/groups/{{ ansible_hostname }}-{{ inventory_hostname }}-groups_list.txt"
+  # #     mode: '0644'
+  # #   delegate_to: localhost
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/user_info/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ user_info_combined }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/user_info/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3
