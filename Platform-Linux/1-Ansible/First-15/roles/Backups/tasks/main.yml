@@ -5,6 +5,9 @@
 ##
 
 ---
+- name: Set timestamp variable
+  set_fact:
+    backup_timestamp: "{{ ansible_date_time.iso8601 }}"
 - name: Target Host Facts
   ansible.builtin.setup:
 
@@ -177,16 +180,7 @@
   with_items:
     - passwd
     - group
-
-- name: Backup Shadow File
-  ansible.builtin.copy:
-    remote_src: true
-    src: /etc/shadow
-    dest: /backups/shadow
-    owner: root
-    group: root
-    mode: u=rw,g=r
-
+  
 - name: Backup Full Etc Directory
   ansible.builtin.copy:
     remote_src: true
@@ -195,4 +189,96 @@
     owner: root
     group: root
     mode: u=rwx,g=,o=
+
+- name: Check www Exists
+  ansible.builtin.stat:
+    path: /var/www
+  register: www_dir
+
+- name: Create www Backup Directory
+  ansible.builtin.file:
+    path: /backups/www
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  when: www_dir.stat.exists
+
+- name: Backup www Directory
+  ansible.builtin.copy:
+    remote_src: true
+    src: /var/www
+    dest: /backups/www
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  when: www_dir.stat.exists
+
+- name: Create Mail Backup Directory
+  ansible.builtin.file:
+    path: /backups/mail
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  ignore_errors: true
+
+- name: Find Mail Directories
+  ansible.builtin.find:
+    paths: "{{ item }}"
+    recurse: yes
+  register: mail_files
+  with_items:
+    - /etc/postfix/
+    - /var/spool/postfix/
+    - /var/log/maillog
+    - /var/log/mail.log
+    - /etc/exim/
+    - /etc/exim4/
+    - /var/spool/exim/
+    - /var/log/exim4/
+    - /etc/mail/
+    - /var/spool/mqueue/
+    - /var/log/maillog
+    - /etc/dovecot/
+    - /var/mail/
+    - /var/log/dovecot.log
+    - /etc/courier/
+  ignore_errors: true
+
+- name: Backup Mail Directories
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "{{ item.path }}"
+    dest: "/backups/mail{{ item.path }}"
+  with_items: "{{ mail_files.results | map(attribute='files') | list | flatten(levels=1) }}"
+  ignore_errors: true
+
+- name: Tar and Zip Backups Directory
+  ansible.builtin.command:
+    cmd: tar -czf /tmp/{{ backup_timestamp }}.tar.gz /backups
+
+- name: Create Backups Directory On Controller
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/backups/{{ ansible_hostname }}/{{ backup_timestamp }}"
+    state: directory
+  delegate_to: localhost
+  become: false
+
+- name: Fetch Tarball
+  ansible.builtin.fetch:
+    src: "/tmp/{{ backup_timestamp }}.tar.gz"
+    dest: "{{ playbook_dir }}/backups/{{ ansible_hostname }}/{{ backup_timestamp }}.tar.gz"
+    flat: yes
+
+- name: Delete Tarball
+  ansible.builtin.file:
+    path: /tmp/{{ backup_timestamp }}.tar.gz
+    state: absent
+
+- name: Unzip Backups 
+  ansible.builtin.command:
+    cmd: tar -xzf {{ playbook_dir }}/backups/{{ ansible_hostname }}/{{ backup_timestamp }}.tar.gz -C {{ playbook_dir}}/backups/{{ ansible_hostname }}/{{ backup_timestamp }}
+  delegate_to: localhost
+  become: false 
 # May want to add Firewall backups later
