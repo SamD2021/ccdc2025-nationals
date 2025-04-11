@@ -25,7 +25,7 @@
 
 - name: Find History Files
   ansible.builtin.find:
-    paths: /backups
+    paths: /home
     recurse: yes
     depth: 2
     hidden: true
