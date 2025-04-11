@@ -4,6 +4,7 @@
 # Written by a sad Matthew Harper...
 # Based on https://github.com/Neo23x0/auditd
 #********************************
+# Todo -- Use Loops...
 
 # Check if the scrip is ran as root.
 # $EUID is a env variable that contains the users UID
@@ -176,13 +177,29 @@ echo "-a always,exit -F path=/usr/bin/docker -F perm=x -k docker_exec" >> /etc/a
 echo "[+] Create auditd rule to log Docker binary executions"
 echo "-a always,exit -F path=/usr/bin/podman -F perm=x -k podman_exec" >> /etc/audit/rules.d/ccdc.rules
 
-# Bash
-echo "[+] Create auditd rule to log bash executions"
-echo "-a always,exit -F path=/bin/bash -F perm=x -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
 
 # Salt
 echo "[+] Create auditd rule to log salt executions"
-echo "-a always,exit -F path=/bin/salt-call -F perm=x -k salt_exec\n-a always,exit -F path=/bin/salt-minion -F perm=x -k salt_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F path=/bin/salt-call -F perm=x -k salt_exec\n-a always,exit -F path=/bin/salt-minion -F perm=x -k salt_exec" >> /etc/audit/rules.d/ccdc.rules
+
+# Log Processes Spawned By Shells (Bin/)
+echo "[+] Create auditd rule to log processes spawned by shells"
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/bin/bash -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/bin/bash -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/bin/zsh -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/bin/zsh -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/bin/sh -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/bin/sh -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/bin/fish -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/bin/fish -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/bin/csh -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/bin/csh -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+
+
+echo "[+] Create auditd rule to log processes spawned by shells"
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/bash -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/usr/bin/bash -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/zsh -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/usr/bin/zsh -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/sh -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/usr/bin/sh -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/fish -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/usr/bin/fish -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+echo -e "-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/csh -k shell_exec\n-a always,exit -F arch=b32 -S execve -F exe=/usr/bin/csh -k shell_exec" >> /etc/audit/rules.d/ccdc.rules
+
+# All
+# echo -e "-a always,exit -S execve -k all_exec" >> /etc/audit/rules.d/ccdc.rules
 
 echo "[!!] Restarting Auditd"
 
