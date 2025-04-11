@@ -12,11 +12,16 @@
     - role: Platform-Linux/1-Ansible/First-15/roles/Backup-Clear-Auth-Key
     - role: Backups
     - role: Cron
-    - role: Disable-Mask
     - role: File-Permissions
     - role: Install-Packages
-    - role: Lock-Users
     - role: Remove-Packages
-    - role: SSH-Danger
     - role: SSH-General
     - role: Sysctl
+
+
+## Do Not Use Unless Compromised
+#     - role: Lock-Users
+
+## More Invasive SSH Changes
+#    - role: SSH-Danger
+#    - role: Disable-Mask
