@@ -554,16 +554,6 @@ ip6tables -A OUTPUT -p icmpv6 --icmpv6-type 153 -j ACCEPT
 # ----------------------------------------------------------------------------------------------------------------------------
 
 # ----------------------------------------------- POLICIES  ------------------------------------------------------------------
-# Set defualt policy of All FILTER chains to DROP
-# ## IPv4
-# iptables -P INPUT DROP
-# iptables -P FORWARD DROP
-# iptables -P OUTPUT DROP
-
-# ##IPv6
-# ip6tables -P INPUT DROP
-# ip6tables -P OUTPUT DROP
-# ip6tables -P FORWARD DROP
 
 # ----------------------------------------------------------------------------------------------------------------------------
 
