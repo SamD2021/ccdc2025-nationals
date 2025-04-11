@@ -1,3 +1,4 @@
+---
 - name: Get local user accounts
   win_shell: |
     Get-LocalUser | Where-Object { $_.Enabled -eq $true } | Select-Object -ExpandProperty Name

@@ -13,8 +13,9 @@
       }}
 
 - name: Write inventory to file
+  delegate_to: {{ delegate_target }}
   copy:
-    dest: "Platform-Windows/1-Ansible/playbook/inventor/domain_inventory.ini"
+    dest: "./inventory/domain_inventory.ini"
     content: |
       {% for role in domain_role_map.values() %}
       [{{ role }}]

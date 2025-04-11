@@ -14,6 +14,19 @@
 
 - debug:
     var: ipban_program.stat.exists
+
+
+- name: Update IPBan configuration overrides
+  win_template:
+    src: ipban.override.config.j2
+    dest: C:\Program Files\IPBan\ipban.override
+  vars:
+    # Optional variables – if not set, they are omitted from the generated config.
+    ipban_failed_login_attempts: "{{ ipban_failed_login_attempts | default(omit) }}"
+    ipban_ip_whitelist: "{{ ipban_ip_whitelist | default(omit) }}"
+    ipban_ip_blacklist: "{{ ipban_ip_blacklist | default(omit) }}"
+    ipban_ban_time: "{{ ipban_ban_time | default(omit) }}"
+    ipban_other_setting: "{{ ipban_other_setting | default(omit) }}"
     
 - name: Ensure IPBan service is set to auto and started
   ansible.windows.win_service:
@@ -21,9 +34,3 @@
     start_mode: auto
     state: started
 
-# - name: Debug IPBan command
-#   win_shell: |
-#     $command = "Invoke-WebRequest -Uri 'https://github.com/DigitalRuby/IPBan/releases/latest/download/IPBan-Windows.zip' -OutFile 'C:\Temp\IPBan.zip'"
-#     Write-Output $command
-
-# Need to modify win2ban configs
