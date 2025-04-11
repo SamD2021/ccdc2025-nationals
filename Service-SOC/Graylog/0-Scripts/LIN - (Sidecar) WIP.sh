@@ -20,7 +20,7 @@ fi
 read -p "Enter GRAYLOG server API ip (Ex: http://<IP_HERE>:9000/api): " manager_ip
 read -p "Enter the API token from GRAYLOG machine (DO NOT SKIP THIS): " gray_token
 
-#config_file="/etc/graylog/sidecar/sidecar.yml"
+config_file="/etc/graylog/sidecar/sidecar.yml"
 
 #if [[ ! -f "$config_file" ]]; then
 #  echo "Error: Configuration file not found at $config_file"
@@ -35,8 +35,8 @@ if [ "$linux_system" == "1" ]; then
     sudo apt-get install graylog-sidecar
 
     sed -i.bak \
-        -e "s|#server_url:.*|server_url: \"$new_server_url\"|" \
-        -e "s|server_api_token:.*|server_api_token: \"$new_api_token\"|" \
+        -e "s|#server_url:.*|server_url: \"$manager_ip\"|" \
+        -e "s|server_api_token:.*|server_api_token: \"$gray_token\"|" \
         "$config_file"
 
     sudo graylog-sidecar -service install

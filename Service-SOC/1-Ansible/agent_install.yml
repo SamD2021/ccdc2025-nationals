@@ -38,7 +38,7 @@
       os: 'yes'
       network: 'yes'
       packages: 'yes'
-      ports_no: 'no' # this was yes before? check this!
+      ports_no: 'yes' # this was yes before? check this!
       processes: 'yes'
 
     wazuh_agent_sca:
@@ -111,11 +111,11 @@
           checks: 'realtime="yes"'
         - dirs: "/home/*/.bashrc"
           checks: 'realtime="yes"'
-        - dirs: "/etc/group"
+        - dirs: "/usr/bin/"
           checks: 'realtime="yes"'
-        - dirs: "/etc/shadow"
+        - dirs: "/usr/local/bin/"
           checks: 'realtime="yes"'
-        - dirs: "/etc/passwd"
+        - dirs: "/tmp/"
           checks: 'realtime="yes"'
       win_directories:
         - dirs: '%WINDIR%'
@@ -179,6 +179,12 @@
         - key: 'HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Winlogon'
           arch: "both"
         - key: 'HKEY_LOCAL_MACHINE\Software\Microsoft\Active Setup\Installed Components'
+          arch: "both"
+        - key: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Security'
+          arch: "both"
+        - key: 'HKLM\SOFTWARE\Microsoft\Windows Defender'
+          arch: "both"
+        - key: 'HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions'
           arch: "both"
       windows_registry_ignore:
         - key: 'HKEY_LOCAL_MACHINE\Security\Policy\Secrets'

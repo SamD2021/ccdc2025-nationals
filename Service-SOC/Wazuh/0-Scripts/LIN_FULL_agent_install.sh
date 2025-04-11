@@ -74,7 +74,7 @@ sudo systemctl start wazuh-agent
 
 # All additional configs for the agent are below:
 # Adds port + inventory + SCA
-sed -i.bak 's|<interval>1h</interval>|<interval>7min</interval>|g' /var/ossec/etc/ossec.conf
+sed -i.bak 's|<interval>1h</interval>|<interval>10min</interval>|g' /var/ossec/etc/ossec.conf
 sed -i.bak 's|<ports all="no">yes</ports>|<ports all="yes">yes</ports>|g' /var/ossec/etc/ossec.conf
 sed -i.bak '/<!-- Log analysis -->/a \\n  <localfile>\n    <log_format>audit</log_format>\n    <location>/var/log/audit/audit.log</location>\n  </localfile>' /var/ossec/etc/ossec.conf
 sed -i.bak 's|<interval>12h</interval>|<interval>1h</interval>|g' /var/ossec/etc/ossec.conf
@@ -118,13 +118,13 @@ EOF'
 #################################################################
 
 # Adds proper custom active response script
-touch /var/ossec/active-response/bin/user-creation-alert
-cat << EOF >> /var/ossec/active-response/bin/user-creation-alert
-#!/bin/bash
-wall "WAZUH WARNING: A new user has been added to this system"
-EOF
-sudo chmod 750 /var/ossec/active-response/bin/user-creation-alert
-sudo chown root:wazuh /var/ossec/active-response/bin/user-creation-alert
+##touch /var/ossec/active-response/bin/user-creation-alert
+#cat << EOF >> /var/ossec/active-response/bin/user-creation-alert
+##!/bin/bash
+#wall "WAZUH WARNING: A new user has been added to this system"
+#EOF
+#sudo chmod 750 /var/ossec/active-response/bin/user-creation-alert
+#sudo chown root:wazuh /var/ossec/active-response/bin/user-creation-alert
 
 # Adds auditd logging + alerts
 ######## THIS PART NOT DONE YET ####################################################################
