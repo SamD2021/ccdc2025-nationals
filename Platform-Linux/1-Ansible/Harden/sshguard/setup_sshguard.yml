@@ -1,0 +1,6 @@
+---
+- hosts: linux
+  become: true
+
+  roles:
+    - setup_sshguard
