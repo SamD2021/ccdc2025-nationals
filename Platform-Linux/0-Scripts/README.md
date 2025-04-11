@@ -1,6 +1,21 @@
 # Scripts
 This directory contains various bash scripts to configure our Linux systems and verify various aspects of them. The should be run in a specific order to prevent the system logs from being flooded, though most of these can be ran in any order. They are listed in the order they are meant to run and are prepended with a number. The [Extras](#extras) section contains notes on additional scripts.
 
+> [!NOTE]
+> If you get to the point of blocking things with IPTables, we can use options similar to the following ones. 
+> ```
+>  # Set defualt policy of All FILTER chains to DROP
+>  # ## IPv4
+>  # iptables -P INPUT DROP
+>  # iptables -P FORWARD DROP
+>  # iptables -P OUTPUT DROP
+>  
+>  # ##IPv6
+>  # ip6tables -P INPUT DROP
+>  # ip6tables -P OUTPUT DROP
+>  # ip6tables -P FORWARD DROP
+> ```
+
 ## Initial Backup
 * **User History**: All user histories will be backed up to */backups/user-histories*. This goes through all home directories, and copies them with an associative name.
 * **SSH**: The sshd_config is stored at */backups/configs/sshd_config.backup* with the ending .backup (As you can see).
