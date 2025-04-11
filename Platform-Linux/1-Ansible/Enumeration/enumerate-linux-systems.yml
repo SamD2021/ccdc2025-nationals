@@ -22,7 +22,6 @@
     - Processes
     - Cron
     - File-System-Snapshot
-    - Shadow
     - SUID
     - Users-Info
     - Hashes
