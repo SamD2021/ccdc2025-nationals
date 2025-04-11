@@ -1,0 +1,43 @@
+###############################################
+# Gathers the contents of the shadow file
+# and saves it to the controller. 
+# Author: Chris Morales
+# Tested on: Ubuntu, Debian, RHEL
+###############################################
+
+---
+  - name: Print out the contents of the shadow file
+    ansible.builtin.shell: |
+      printf "[!] SHADOW [!]\n"
+      cat /etc/shadow
+    register: shadow_list
+    ignore_errors: true
+
+  # - name: Ensure the local target directory is made
+  #   file:
+  #     path: "{{ results_dir }}/shadow"
+  #     state: directory
+  #   delegate_to: localhost
+
+  # - name: Save results to the controller
+  #   ansible.builtin.copy:
+  #     content: "{{ shadow_list.stdout }}"
+  #     dest: "{{ results_dir }}/shadow/{{ ansible_hostname }}-{{ inventory_hostname }}-shadow.txt"
+  #     mode: '0644'
+  #   delegate_to: localhost
+
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/shadow/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ shadow_list.stdout }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/shadow/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3

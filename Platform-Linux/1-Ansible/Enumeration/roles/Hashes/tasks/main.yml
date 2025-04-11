@@ -1,0 +1,28 @@
+###############################################
+# Gathers hashes of select binaries target system
+# and gathers information 
+# Author: Chris Morales
+# Tested on: Ubuntu, Debian, RHEL
+###############################################
+
+---
+  - name: Run on all binaries in one go
+    shell: |
+      find {{ binary_directories | join(' ') }} -type f -exec {{ hash_command }} {} + 2>/dev/null
+    register: raw_hash_output
+    ignore_errors: true
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/hashes/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ raw_hash_output.stdout_lines | join('\n') }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/hashes/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3

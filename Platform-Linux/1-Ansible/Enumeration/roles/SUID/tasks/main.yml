@@ -1,0 +1,50 @@
+###############################################
+# Gathers a list of all SUID binaries
+# and saves it to the controller. 
+# Author: Chris Morales
+# Tested on: Ubuntu, Debian, RHEL
+###############################################
+
+---
+
+  # NOTE: This will say that it throws an error,
+  # but it's likely there is a suppressed error thrown from find
+  # trying to access something in the /proc directory.
+  # I'm keeping it like this rather than use a || true
+  # just in case there's a permission issue even on the
+  # directories that we should have access to.
+  - name: Locate all SUID bit files.
+    ansible.builtin.shell: |
+      echo "[!] SUID Binaries [!]"
+      find / -perm -4000 -type f 2>/dev/null
+    register: suid_list
+    ignore_errors: true
+
+  # - name: Ensure the local target directory is made
+  #   file:
+  #     path: "{{ results_dir }}/SUID"
+  #     state: directory
+  #   delegate_to: localhost
+
+  # - name: Save results to the controller
+  #   ansible.builtin.copy:
+  #     content: "{{ suid_list.stdout }}"
+  #     dest: "{{ results_dir }}/SUID/{{ ansible_hostname }}-{{ inventory_hostname }}-SUID.txt"
+  #     mode: '0644'
+  #   delegate_to: localhost
+
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/suid/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ suid_list.stdout }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/suid/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3

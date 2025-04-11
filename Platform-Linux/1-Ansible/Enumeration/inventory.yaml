@@ -1,0 +1,46 @@
+###############################
+# Author: Chris Morales
+###############################
+
+all:
+  children:
+    linux:
+
+  vars:
+    ansible_user: user
+    ansible_ssh_private_key_file: ~/.ssh/some_key.pem
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    
+    # This extra command below shows how to use a proxy command to connect to the target host through a bastion host.
+    # This is useful when the target host is not directly accessible from your machine.
+    # ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/some_key.pem -W %h:%p user@<proxy_ip>"'
+
+linux:
+  children:
+    alpine:
+    debian:
+    ubuntu:
+    rhel:
+
+goodLinux:
+  children:
+    ubuntu:
+    debian:
+
+alpine:
+  hosts:
+    1.2.3.4:
+  vars:
+    ansible_user: root # Can overwrite the global variable from above
+
+debian:
+  hosts:
+    1.2.3.4:
+
+ubuntu:
+  hosts:
+    1.2.3.4:
+
+rhel:
+  hosts:
+    1.2.3.4:

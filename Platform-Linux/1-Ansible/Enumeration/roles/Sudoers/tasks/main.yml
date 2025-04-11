@@ -1,0 +1,69 @@
+##
+# Usage: Log Dangerous Sudo Configurations
+#
+# Initially written by a Tired Matthew Harper
+# Modified, tested and verified by Chris Morales - Ubuntu, Debian, RHEL
+##
+
+---
+  # - name: Locate-Danger-Sudo
+  #   ansible.builtin.shell: |
+  #     echo "[!] NOPASSWORD GROUPS AND USERS [!]"
+  #     cat /etc/sudoers | grep NOPASS
+  #     echo "[!] NOAUTH GROUPS AND USERS [!]"
+  #     cat /etc/sudoers | grep !AUTH
+  #   register: sudo_log
+  #   ignore_errors: true
+
+  - name: Locate-Danger-Sudo
+    ansible.builtin.shell: |
+      echo "[!] NOPASSWORD GROUPS AND USERS [!]"
+
+      # Search in /etc/sudoers
+      grep -H NOPASS /etc/sudoers || true
+
+      # Search in /etc/sudoers.d/*
+      for file in /etc/sudoers.d/*; do
+        grep -H NOPASS "$file" || true
+      done
+
+      echo "[!] NOAUTH GROUPS AND USERS [!]"
+
+      # Search in /etc/sudoers
+      grep -H !AUTH /etc/sudoers || true
+
+      # Search in /etc/sudoers.d/*
+      for file in /etc/sudoers.d/*; do
+        grep -H !AUTH "$file" || true
+      done
+    register: sudo_log
+    ignore_errors: true
+
+
+  # - name: Ensure the local target directory is made
+  #   file:
+  #     path: "{{ results_dir }}/sudoers"
+  #     state: directory
+  #   delegate_to: localhost
+
+  # - name: Save results to the controller
+  #   ansible.builtin.copy:
+  #     content: "{{ process_list.stdout }}"
+  #     dest: "{{ results_dir }}/sudoers/{{ ansible_hostname }}-{{ inventory_hostname }}-sudoers.txt"
+  #     mode: '0644'
+  #   delegate_to: localhost
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/sudoers/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ sudo_log.stdout }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/sudoers/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3

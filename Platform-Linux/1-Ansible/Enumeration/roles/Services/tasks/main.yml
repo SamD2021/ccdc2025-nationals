@@ -1,0 +1,91 @@
+##
+# Usage: Log Services that Execute Binaries or Scripts at startup
+#
+# Initially written by a Tired Matthew Harper
+# Modified, tested and verified by Chris Morales - Ubuntu, Debian, RHEL
+##
+
+---
+
+  # - name: Get All Systemd Services and Their Status
+  #   ansible.builtin.shell: |
+  #     systemctl list-units --type=service --all --no-pager --no-legend
+  #     echo -e "\n\n[!] Installed But Inactive Services [!]\n"
+  #     systemctl list-unit-files --type=service --no-pager --no-legend
+  #   register: all_services
+  #   ignore_errors: true
+
+  - name: List all systemd services with their state
+    ansible.builtin.shell: |
+      systemctl list-units --type=service --all --no-legend --no-pager
+    register: raw_services
+    ignore_errors: true
+
+  - name: Initialize service buckets
+    set_fact:
+      running_services: []
+      exited_services: []
+      dead_services: []
+      other_services: []
+
+  - name: Categorize systemd services by state
+    set_fact:
+      running_services: "{{ running_services + [item] if service_sub == 'running' else running_services }}"
+      exited_services: "{{ exited_services + [item] if service_sub == 'exited' else exited_services }}"
+      dead_services: "{{ dead_services + [item] if service_sub == 'dead' else dead_services }}"
+      other_services: "{{ other_services + [item] if service_sub not in ['running', 'exited', 'dead'] else other_services }}"
+    vars:
+      service_parts: "{{ item.split() }}"
+      service_sub: "{{ service_parts[3] if service_parts | length > 3 else '' }}"
+    loop: "{{ raw_services.stdout_lines }}"
+
+
+  - name: Combine all grouped service states into a single report
+    set_fact:
+      grouped_services: |
+        🟢 RUNNING SERVICES
+        ===================
+        Unit Name                                   Loaded   Active State   Description
+        --------------------------------------------------------------------------------
+        {% for svc in running_services %}
+        {{ svc }}
+        {% endfor %}
+
+        🟡 EXITED SERVICES
+        ===================
+        Unit Name                                   Loaded   Active State   Description
+        --------------------------------------------------------------------------------
+        {% for svc in exited_services %}
+        {{ svc }}
+        {% endfor %}
+
+        🔴 DEAD SERVICES
+        ===================
+        Unit Name                                   Loaded   Active State   Description
+        --------------------------------------------------------------------------------
+        {% for svc in dead_services %}
+        {{ svc }}
+        {% endfor %}
+
+        ⚪ OTHER SERVICES
+        ===================
+        Unit Name                                   Loaded   Active State   Description
+        --------------------------------------------------------------------------------
+        {% for svc in other_services %}
+        {{ svc }}
+        {% endfor %}
+
+  - name: Ensure the local target directory is made
+    file:
+      path: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/services/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Save results to the controller
+    ansible.builtin.copy:
+      content: "{{ grouped_services }}"
+      #dest: "{{ results_dir }}/services/{{ ansible_hostname }}-{{ inventory_hostname }}-services.txt"
+      dest: "{{ results_dir }}/{{ ansible_hostname }}-{{ inventory_hostname }}/services/{{ timestamp }}"
+      mode: '0644'
+    delegate_to: localhost
+    retries: 3
