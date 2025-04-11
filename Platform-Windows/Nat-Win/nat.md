@@ -16,6 +16,7 @@
 - [See Recent Created Accounts](#recently-created-accounts)
 - [Find Failed Logon Attempts](#search-failed-logon-attempts)
 - [Find potential malicious files](#search-for-potential-malicious-files)
+- [All Process Created Last 10 min](#all-processes-created-in-10-min)
 
 ### Domain Wide Commands
 ```sh
@@ -37,17 +38,17 @@ $excludedUsers = @(
 
 # Output file for new passwords if we want it
 $logFile = "C:\Users\Administrator\domain_user_passwords.csv"
-"Username,NewPassword" | Out-File -FilePath $logFile
 
 # Function to generate a 20-character random password
 function Generate-RandomPassword {
     param ([int]$length = 20)
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+'
-    -join ((1..$length) | ForEach-Object { $chars | Get-Random })
+    $charArray = $chars.ToCharArray()
+    -join ((1..$length) | ForEach-Object { Get-Random -InputObject $charArray })
 }
 
 # Get all enabled domain users
-$users = Get-ADUser -Filter {Enabled -eq $true} -Properties SamAccountName
+$users = Get-ADUser -Filter * -Properties SamAccountName
 
 foreach ($user in $users) {
     if ($excludedUsers -contains $user.SamAccountName) {
@@ -58,6 +59,7 @@ foreach ($user in $users) {
     $newPassword = Generate-RandomPassword
 
     try {
+        Set-ADUser -Identity $user.SamAccountName -PasswordNeverExpires $false
         Set-ADAccountPassword -Identity $user.SamAccountName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $newPassword -Force)
         Set-ADUser -Identity $user.SamAccountName -ChangePasswordAtLogon $true
 
@@ -88,7 +90,8 @@ $logFile = "C:\Users\Administrator\local_user_passwords.csv"
 function Generate-RandomPassword {
     param ([int]$length = 20)
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+'
-    -join ((1..$length) | ForEach-Object { $chars | Get-Random })
+    $charArray = $chars.ToCharArray()
+    -join ((1..$length) | ForEach-Object { Get-Random -InputObject $charArray })
 }
 
 # Get all local users
@@ -213,9 +216,38 @@ Register-ObjectEvent $watcher Changed -Action {
     Write-Host \"File changed: $($Event.SourceEventArgs.FullPath)\"
 }
 ```
+To unregister and stop the watcher
+```sh
+Unregister-Event -SubscriptionId 1
+```
+To get list of event IDs
+```sh
+Get-EventSubscriber
+```
 
 ### Search for potential malicious files
 ```sh
 Get-ChildItem -Path C:\ -Recurse -Force -ErrorAction SilentlyContinue |
     Where-Object { $_.Attributes -match 'Hidden' -and $_.Extension -match '\\.(exe|ps1|bat)' }
+```
+
+### All processes created in 10 min
+```sh
+param (
+    [int]$MinutesAgo = 10  # Default to last 10 minutes
+)
+
+# Calculate the cutoff time
+$cutoffTime = (Get-Date).AddMinutes(-$MinutesAgo)
+
+# Get all processes and filter by StartTime
+Get-Process | ForEach-Object {
+    try {
+        if ($_.StartTime -gt $cutoffTime) {
+            $_
+        }
+    } catch {
+        # Some system processes may not expose StartTime (e.g., idle/system), so we skip them
+    }
+}
 ```
