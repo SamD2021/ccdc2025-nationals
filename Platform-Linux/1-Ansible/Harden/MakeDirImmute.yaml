@@ -1,0 +1,27 @@
+---
+- name: Make Directory Immutable
+  hosts: localhost
+  become: true
+  vars_prompt:
+    - name: target_dir
+      prompt: "Enter the directory path to make immutable"
+      private: false
+
+  tasks:
+    - name: Check if directory exists
+      stat:
+        path: "{{ target_dir }}"
+      register: dir_check
+
+    - name: Fail if directory doesn't exist
+      fail:
+        msg: "Directory {{ target_dir }} does not exist!"
+      when: not dir_check.stat.exists or not dir_check.stat.isdir
+
+    - name: Make directory and contents immutable
+      shell: "chattr -R +i {{ target_dir }}"
+      when: dir_check.stat.exists
+
+    - name: Verify immutable status
+      debug:
+        msg: "Directory {{ target_dir }} has been made immutable"

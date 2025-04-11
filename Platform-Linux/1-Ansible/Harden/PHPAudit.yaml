@@ -1,0 +1,61 @@
+---
+- name: PHP Security Configuration Check
+  hosts: localhost
+  become: true
+  vars:
+    php_config_file: /etc/php/php.ini
+    security_checks:
+      - { option: "display_errors", secure_value: "Off", description: "Disable error display in production" }
+      - { option: "expose_php", secure_value: "Off", description: "Hide PHP version" }
+      - { option: "allow_url_fopen", secure_value: "Off", description: "Disable remote file inclusion" }
+      - { option: "allow_url_include", secure_value: "Off", description: "Disable URL includes" }
+      - { option: "session.use_strict_mode", secure_value: "1", description: "Enable strict session mode" }
+      - { option: "session.cookie_httponly", secure_value: "1", description: "Enable HTTPOnly cookies" }
+
+  tasks:
+    - name: Check if PHP config exists
+      stat:
+        path: "{{ php_config_file }}"
+      register: php_config
+
+    - name: Fail if PHP config doesn't exist
+      fail:
+        msg: "PHP configuration file not found at {{ php_config_file }}"
+      when: not php_config.stat.exists
+
+    - name: Check current PHP settings
+      shell: "grep -E '^{{ item.option }} = ' {{ php_config_file }} || echo '{{ item.option }} = notfound'"
+      register: "php_settings"
+      loop: "{{ security_checks }}"
+      changed_when: false
+
+    - name: Display security issues
+      debug:
+        msg: "{{ item.item.description }} - Current: {{ item.stdout.split('=')[1] | trim }}, Recommended: {{ item.item.secure_value }}"
+      loop: "{{ php_settings.results }}"
+
+    - name: Ask to fix each issue
+      pause:
+        prompt: "Fix {{ item.item.description }}? (yes/no)"
+      register: fix_confirm
+      loop: "{{ php_settings.results }}"
+      when: item.stdout.split('=')[1] | trim != item.item.secure_value
+
+    - name: Apply fixes
+      replace:
+        path: "{{ php_config_file }}"
+        regexp: '^{{ item.item.option }} = .*$'
+        replace: '{{ item.item.option }} = {{ item.item.secure_value }}'
+      loop: "{{ php_settings.results }}"
+      when: item.changed and fix_confirm.user_input | default('no') == 'yes'
+
+    - name: Ask to restart PHP service
+      pause:
+        prompt: "Would you like to restart PHP service to apply changes? (yes/no)"
+      register: restart_confirm
+
+    - name: Restart PHP service
+      service:
+        name: php-fpm
+        state: restarted
+      when: restart_confirm.user_input | default('no') == 'yes'

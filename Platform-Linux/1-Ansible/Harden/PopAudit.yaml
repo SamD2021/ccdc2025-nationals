@@ -1,0 +1,49 @@
+---
+- name: Enable Directory Auditing
+  hosts: localhost
+  become: true
+  vars_prompt:
+    - name: target_dir
+      prompt: "Enter the directory path to enable auditing"
+      private: false
+
+  tasks:
+    - name: Check if directory exists
+      stat:
+        path: "{{ target_dir }}"
+      register: dir_check
+
+    - name: Fail if directory doesn't exist
+      fail:
+        msg: "Directory {{ target_dir }} does not exist!"
+      when: not dir_check.stat.exists or not dir_check.stat.isdir
+
+    - name: Check if auditd is installed
+      package:
+        name: auditd
+        state: present
+
+    - name: Ensure auditd service is running
+      service:
+        name: auditd
+        state: started
+        enabled: yes
+
+    - name: Add audit rules for directory
+      shell: |
+        auditctl -w {{ target_dir }} -p wa -k directory_changes
+      register: audit_result
+
+    - name: Make audit rules persistent
+      lineinfile:
+        path: /etc/audit/rules.d/audit.rules
+        line: "-w {{ target_dir }} -p wa -k directory_changes"
+        create: yes
+
+    - name: Verify audit status
+      shell: auditctl -l | grep {{ target_dir }}
+      register: verify_result
+
+    - name: Display audit status
+      debug:
+        msg: "Directory {{ target_dir }} is now being audited. Check /var/log/audit/audit.log for events."
