@@ -1,0 +1,55 @@
+# Auth Keys
+    remote_tmp_target: /tmp/auth_keys.out
+    local_tmp_target: ../Enumerated_Systems/
+    key_num_lines: 30
+
+# Cron Tabs
+    remote_tmp_target_tabs: /tmp/cron_tab.out
+    remote_tmp_target_timers: /tmp/system_timers.out
+    local_tmp_target: ../Enumerated_Systems/
+
+# Last 15 File Mods
+
+    remote_tmp_target: /tmp/edited_files.out
+    local_tmp_target: ../Enumerated_Systems/
+    age: -1h
+
+
+# Host Network - Network Activity
+
+    remote_tmp_target_network_listen: /tmp/host-network-listen.out
+    remote_tmp_target_network_established: /tmp/host-network-conn.out
+    remote_tmp_target_network_raw: /tmp/host-network-raw.out
+    local_tmp_target: ../Enumerated_Systems/
+
+# Host Network - Network Config
+    remote_tmp_target_network_state: /tmp/host-network-listen.out
+    remote_tmp_target_network_config: /tmp/host-network-conn.out
+    local_tmp_target: ../Enumerated_Systems/
+
+# Lin Peas
+    local_tmp_target: ../Enumerated_Systems/
+    remote_tmp_target: /tmp/linpeas.out
+    tmp_sh: /tmp/lpsh.sh
+    linpeas_url: https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh
+    local_JSON_cmd: python3 PEASS-NG-Parsers/peas2json.py
+
+# Processes
+    remote_tmp_target: /tmp/process_tree.out
+    local_tmp_target: ../Enumerated_Systems/
+
+# Service Enum
+    remote_tmp_target: /tmp/services.out
+    local_tmp_target: ../Enumerated_Systems/
+
+# Sudoers
+
+    remote_tmp_target: /tmp/sudo_danger.out
+    local_tmp_target: ../Enumerated_Systems/
+
+# User List
+
+    remote_tmp_target_active: /tmp/user-active.out
+    remote_tmp_target_sh: /tmp/user-sh.out
+    remote_tmp_target_group: /tmp/user-group.out
+    local_tmp_target: ../Enumerated_Systems/

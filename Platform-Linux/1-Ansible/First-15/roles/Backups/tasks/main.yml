@@ -1,0 +1,198 @@
+##
+# Usage: Setup Cron Restrictions
+#
+# Initially written by a Tired Matthew Harper
+##
+
+---
+- name: Target Host Facts
+  ansible.builtin.setup:
+
+- name: Find User Home Directories
+  ansible.builtin.command: "ls /home/"
+  register: home_dirs
+
+- name: Create Backup Directory
+  ansible.builtin.file:
+    path: /backups
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Find History Files
+  ansible.builtin.find:
+    paths: /home
+    recurse: yes
+    depth: 2
+    hidden: true
+    use_regex: true
+    pattern: '.*_history, .*history'
+    file_type: file
+  register: history_files
+
+- name: Create History Backup Directory
+  ansible.builtin.file:
+    path: /backups/user-histories
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Create User History Backup Directory
+  ansible.builtin.file:
+    path: /backups/users/{{ item }}
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  with_items:
+    - "{{ home_dirs.stdout_lines }}"
+
+- name: Backup User Shell Histories
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: /backups/users/{{ item.pw_name }}/{{ item.path.split('/')[-1] }}
+    remote_src: true
+  with_items: "{{ history_files.files }}"
+
+- name: Backup User Authorized Keys
+  ansible.builtin.copy:
+    src: /home/{{ item }}/.ssh/authorized_keys
+    dest: /backups/users/{{ item }}/authorized_keys
+    remote_src: true
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  with_items: "{{ home_dirs.stdout_lines }}"
+
+- name: Create SSHD Backup Directory
+  ansible.builtin.file:
+    path: /backups/ssh
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Backup SSH Directory
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/ssh/
+    dest: /backups/ssh
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Create PAM Backup Directory
+  ansible.builtin.file:
+    path: /backups/pam/pam.d
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Backup PAM Directory
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/{{ item }}
+    dest: /backups/pam/{{ item }}
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  with_items:
+    - pam.d
+    - pam.conf
+
+- name: Create Cron Backup Directory
+  ansible.builtin.file:
+    path: /backups/cron
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Create Etc Backup Directory
+  ansible.builtin.file:
+    path: /backups/etc
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Backup Redhat Cron
+  ansible.builtin.copy:
+    remote_src: true
+    src: /var/spool/cron/
+    dest: /backups/cron
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Backup Debian Cron
+  ansible.builtin.copy:
+    remote_src: true
+    src: /var/spool/cron/crontabs
+    dest: /backups/cron
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Backup Other Cron
+  ansible.builtin.copy:
+    remote_src: true
+    src: /var/spool/cron/crontabs
+    dest: /backups/cron
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+  when: not ansible_facts['os_family'] == 'Debian' and not ansible_facts['os_family'] == 'RedHat'
+
+- name: Create Log Backup Directory
+  ansible.builtin.file:
+    path: /backups/log
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Backup Logs
+  ansible.builtin.copy:
+    remote_src: true
+    src: /var/log
+    dest: /backups/log
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+
+- name: Backup Passwd and Group Files
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/{{ item }}
+    dest: /backups/{{ item }}
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  with_items:
+    - passwd
+    - group
+
+- name: Backup Shadow File
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/shadow
+    dest: /backups/shadow
+    owner: root
+    group: root
+    mode: u=rw,g=r
+
+- name: Backup Full Etc Directory
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc
+    dest: /backups/etc
+    owner: root
+    group: root
+    mode: u=rwx,g=,o=
+# May want to add Firewall backups later
